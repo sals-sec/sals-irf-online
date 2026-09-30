@@ -1,0 +1,14 @@
+{
+  "name": "cctv-footage-request-tracker",
+  "version": "1.0.0",
+  "description": "OEF-25 CCTV Footage Request Tracker",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "echo 'No build required'"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

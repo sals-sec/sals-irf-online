@@ -1,0 +1,8 @@
+{
+  "name": "OEF-25 CCTV Footage Request Tracker",
+  "description": "Register and tracker for CCTV footage requests (Form OEF-25 Rev 02), including request management, review workflow, and export capabilities.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
