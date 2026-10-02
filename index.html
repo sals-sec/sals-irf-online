@@ -336,7 +336,7 @@ code, pre, .font-mono, td.m, .hc, .step-num, .section-number, .sec-name span, .p
     <section id="vForm">
       <div class="page-heading">
         <div class="page-heading-left">
-          <div><h2 id="ft">Request</h2><p id="pageIntro">Complete sections A–G of the request form.</p></div>
+          <div><h2 id="ft">Request</h2><p id="pageIntro">Complete sections 1–6 of the request form.</p></div>
         </div>
         <span class="page-tag">Form OEF-25 Rev 02</span>
       </div>
@@ -476,8 +476,8 @@ code, pre, .font-mono, td.m, .hc, .step-num, .section-number, .sec-name span, .p
 'use strict';
 const APP_VER='1.0.0',SK={data:'cctv_oef25_data_v1',users:'cctv_oef25_users_v1',set:'cctv_oef25_settings_v1',ses:'cctv_oef25_session'};
 const PURPOSES=['Security Investigation','Safety Investigation','Incident Investigation','Theft Investigation','Accident','Property Damage','Near Miss','HR Investigation','Customer Complaint','Insurance Claim','Audit','Legal Requirement','Other (Please Specify)'];
-const FOOTAGE=['Live View','Playback Review','Screenshot','Video Export','Still Images','Entire Recording','Specific Time Only'];
-const MEDIA=['USB','E-mail','Secure Server','Cloud','Other'];
+const FOOTAGE=['Screenshot','Video Export','Still Images','Entire Recording','Other (Please Specify)'];
+const MEDIA=['E-mail','Other'];
 const STATUS=['Submitted','Under Review','Approved','Released','Rejected'];
 const STEPS={Submitted:'Request received', 'Under Review':'Security checking footage', Approved:'Approver signed off', Released:'Footage handed over', Rejected:'Request declined'};
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -565,7 +565,7 @@ function buildForm(){
 <div class="card" id="section1"><h3 class="section-title"><span class="section-number">01</span>Information</h3><div class="grid">${inp('reqDate','Request Date','date')}${inp('reqTime','Request Time','time')}${inp('name','Requestor Name')}${inp('empId','Employee ID')}${inp('dept','Department')}${inp('pos','Position')}${inp('contact','Contact Number','tel')}${inp('email','Email Address','email')}</div></div>
 <div class="card" id="section2"><h3 class="section-title"><span class="section-number">02</span>Purpose</h3>${chk('purposes',PURPOSES)}<div class="field" style="margin-top:10px" id="oth"><label>Other – please specify</label><input data-k="purposeOther"></div></div>
 <div class="card" id="section3"><h3 class="section-title"><span class="section-number">03</span>Recording Details</h3><div class="grid">${inp('area','Area / Location')}${inp('recDate','Date','date')}<div class="field"><label>Day</label><input id="day" readonly></div>${inp('recFrom','Time From','time')}${inp('recTo','Time To','time')}</div></div>
-<div class="card" id="section4"><h3 class="section-title"><span class="section-number">04</span>Footage Request</h3>${chk('footage',FOOTAGE)}<div class="lbl" style="margin:12px 0 6px">Storage media requested</div>${chk('media',MEDIA)}<div class="field" style="margin-top:10px" id="mo"><label>Other media – specify</label><input data-k="mediaOther"></div></div>
+<div class="card" id="section4"><h3 class="section-title"><span class="section-number">04</span>Footage Request</h3>${chk('footage',FOOTAGE)}<div class="field" style="margin-top:10px" id="fo"><label>Other footage – please specify</label><input data-k="footageOther"></div><div class="lbl" style="margin:12px 0 6px">Storage media requested</div>${chk('media',MEDIA)}<div class="field" style="margin-top:10px" id="mo"><label>Other media – specify</label><input data-k="mediaOther"></div></div>
 <div class="card" id="section5"><h3 class="section-title"><span class="section-number">05</span>Declaration</h3><p class="decl">I acknowledge that CCTV footage contains confidential and sensitive information. I agree that the footage will only be used for the approved investigation purpose and will not be copied, distributed, disclosed, or used for unauthorized purposes. I understand that any misuse may result in disciplinary or legal action.</p>
 <div class="checks" style="margin-bottom:10px" id="ackw"><label><input type="checkbox" data-k="ack"> I acknowledge and agree</label></div><div class="grid">${inp('sigName','Requestor Signature (typed name)')}${inp('sigDate','Date','date')}</div></div>
 <div class="card" id="section6"><h3 class="section-title"><span class="section-number">06</span>Security Review</h3><div class="grid">${inp('recvBy','Received By')}${inp('recvDate','Received Date','date')}${inp('revBy','Reviewed By')}
@@ -573,6 +573,7 @@ function buildForm(){
 <div class="card" id="section7"><h3 class="section-title"><span class="section-number">07</span>Approval</h3><div class="grid">${inp('apprName','Approver Signature (typed name)')}${inp('apprDate','Date','date')}<div class="field full"><label>Remarks (tracker note)</label><textarea data-k="remarks" rows="2"></textarea></div></div></div>`;
   $('#fh').addEventListener('input',e=>{if(e.target.dataset.k==='recDate')$('#day').value=dayOf(e.target.value);togg();updateSectionBadges();e.target.closest('.field')?.classList.remove('bad')});
   $('#fh').addEventListener('change',()=>{togg();updateSectionBadges()});
+  togg();
   setupScrollSpy();
   updateSectionBadges();
 }
@@ -668,9 +669,13 @@ function setupSectionNavClicks(){
     });
   });
 }
-function togg(){$('#oth').hidden=!$('[data-g=purposes] input[value^=Other]').checked;$('#mo').hidden=!$('[data-g=media] input[value=Other]').checked}
+function togg(){
+  const oth=$('[data-g=purposes] input[value^=Other]');if($('#oth'))$('#oth').hidden=!oth||!oth.checked;
+  const fo=$('[data-g=footage] input[value^=Other]');if($('#fo'))$('#fo').hidden=!fo||!fo.checked;
+  const mo=$('[data-g=media] input[value^=Other]');if($('#mo'))$('#mo').hidden=!mo||!mo.checked;
+}
 function nextNo(){const y=new Date().getFullYear(),p='CCTV-'+y+'-';let m=0;rows().forEach(r=>{if(r.no?.startsWith(p))m=Math.max(m,parseInt(r.no.slice(p.length))||0)});return p+String(m+1).padStart(3,'0')}
-const blank=()=>({id:'r'+Date.now().toString(36),no:nextNo(),status:'Submitted',reqDate:today(),reqTime:nowT(),name:'',empId:'',dept:'',pos:'',contact:'',email:'',purposes:[],purposeOther:'',area:'',recDate:'',recFrom:'',recTo:'',footage:[],media:[],mediaOther:'',ack:false,sigName:'',sigDate:'',recvBy:settings.officer||'',recvDate:'',revBy:'',avail:'',quality:'',apprName:'',apprDate:'',remarks:'',by:user?.u||'',created:new Date().toISOString(),updated:new Date().toISOString()});
+const blank=()=>({id:'r'+Date.now().toString(36),no:nextNo(),status:'Submitted',reqDate:today(),reqTime:nowT(),name:'',empId:'',dept:'',pos:'',contact:'',email:'',purposes:[],purposeOther:'',area:'',recDate:'',recFrom:'',recTo:'',footage:[],footageOther:'',media:[],mediaOther:'',ack:false,sigName:'',sigDate:'',recvBy:settings.officer||'',recvDate:'',revBy:'',avail:'',quality:'',apprName:'',apprDate:'',remarks:'',by:user?.u||'',created:new Date().toISOString(),updated:new Date().toISOString()});
 function fill(r){$$('[data-k]').forEach(e=>{const v=r[e.dataset.k];if(e.type==='checkbox')e.checked=!!v;else e.value=v??''});$$('[data-g]').forEach(g=>$$('input',g).forEach(c=>c.checked=(r[g.dataset.g]||[]).includes(c.value)));$('#day').value=dayOf(r.recDate);$$('.bad').forEach(x=>x.classList.remove('bad'));togg();updateSectionBadges()}
 function collect(){const r={...cur};$$('[data-k]').forEach(e=>{r[e.dataset.k]=e.type==='checkbox'?e.checked:e.value.trim()});$$('[data-g]').forEach(g=>r[g.dataset.g]=$$('input:checked',g).map(c=>c.value));return r}
 
@@ -725,7 +730,8 @@ function saveForm(){
 
 /* ---- register ---- */
 const purposeTxt=r=>(r.purposes||[]).map(p=>p.startsWith('Other')&&r.purposeOther?'Other: '+r.purposeOther:p).join(', ');
-const mediaTxt=r=>(r.media||[]).map(m=>m==='Other'&&r.mediaOther?'Other: '+r.mediaOther:m).join(', ');
+const footageTxt=r=>(r.footage||[]).map(f=>f.startsWith('Other')&&r.footageOther?'Other: '+r.footageOther:f).join(', ');
+const mediaTxt=r=>(r.media||[]).map(m=>m.startsWith('Other')&&r.mediaOther?'Other: '+r.mediaOther:m).join(', ');
 const statusPillClass = s => {
   if (s === 'Submitted') return 'status-pill status-open';
   if (s === 'Under Review') return 'status-pill status-progress';
@@ -747,7 +753,7 @@ function renderReg(){
   const list=rows().filter(r=>{
     if(fs && r.status!==fs) return false;
     if(fd && r.dept!==fd) return false;
-    if(q && ![r.no,r.name,r.empId,r.dept,r.area,purposeTxt(r)].join(' ').toLowerCase().includes(q)) return false;
+    if(q && ![r.no,r.name,r.empId,r.dept,r.area,purposeTxt(r),footageTxt(r),mediaTxt(r)].join(' ').toLowerCase().includes(q)) return false;
     if(dateFilter==='today') return r.reqDate===nowStr;
     if(dateFilter==='week'){
       if(!r.reqDate) return false;
@@ -772,7 +778,7 @@ function renderReg(){
     <td>${esc(r.area)}</td>
     <td class="m">${fmtD(r.recDate)}<br>${recTime(r)}</td>
     <td>${esc(purposeTxt(r))}</td>
-    <td>${esc((r.footage||[]).join(', '))}<br><small class="hc">${esc(mediaTxt(r))}</small></td>
+    <td>${esc(footageTxt(r))}<br><small class="hc">${esc(mediaTxt(r))}</small></td>
     <td><span class="${statusPillClass(r.status)}">${r.status}</span></td>
     <td class="act">
       <button class="btn btn-secondary btn-sm" data-row="view" data-id="${r.id}">View</button>
@@ -798,7 +804,7 @@ function printHTML(r){
       <tr><th colspan="4">SECTION C – RECORDING DETAILS</th></tr>
       <tr><td class="k">Area / Location</td><td>${esc(r.area)}</td><td class="k">Day</td><td>${dayOf(r.recDate)}</td></tr>
       <tr><td class="k">Date</td><td>${fmtD(r.recDate)}</td><td class="k">Time</td><td>${recTime(r)}</td></tr>
-      <tr><th colspan="4">SECTION D – FOOTAGE REQUEST</th></tr><tr><td colspan="4" style="line-height:1.9">${b(FOOTAGE,r.footage)}</td></tr>
+      <tr><th colspan="4">SECTION D – FOOTAGE REQUEST</th></tr><tr><td colspan="4" style="line-height:1.9">${b(FOOTAGE,r.footage,r.footageOther)}</td></tr>
       <tr><th colspan="4">STORAGE MEDIA REQUESTED</th></tr><tr><td colspan="4">${b(MEDIA,r.media,r.mediaOther)}</td></tr>
       <tr><th colspan="4">SECTION E – DECLARATION</th></tr><tr><td colspan="4">I acknowledge that CCTV footage contains confidential and sensitive information. I agree that the footage will only be used for the approved investigation purpose and will not be copied, distributed, disclosed, or used for unauthorized purposes. I understand that any misuse may result in disciplinary or legal action.</td></tr>
       <tr><td class="k">Requestor Signature</td><td>${r.ack?esc(r.sigName):''}</td><td class="k">Date</td><td>${fmtD(r.sigDate)}</td></tr>
@@ -840,7 +846,7 @@ function csv(){
   const H=['Request No','Status','Request Date','Request Time','Requestor','Employee ID','Department','Position','Contact','Email','Purpose','Location','Recording Date','Day','Recording Time','Footage Request','Storage Media','Declaration Acknowledged','Signature','Signature Date','Received By','Received Date','Reviewed By','Footage Available','Recording Quality','Approver','Approval Date','Remarks'];
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
   const L=[H.map(q).join(',')];
-  rows().forEach(r=>L.push([r.no,r.status,r.reqDate,r.reqTime,r.name,r.empId,r.dept,r.pos,r.contact,r.email,purposeTxt(r),r.area,r.recDate,dayOf(r.recDate),recTime(r),(r.footage||[]).join('; '),mediaTxt(r),r.ack?'Yes':'No',r.sigName,r.sigDate,r.recvBy,r.recvDate,r.revBy,r.avail,r.quality,r.apprName,r.apprDate,r.remarks].map(q).join(',')));
+  rows().forEach(r=>L.push([r.no,r.status,r.reqDate,r.reqTime,r.name,r.empId,r.dept,r.pos,r.contact,r.email,purposeTxt(r),r.area,r.recDate,dayOf(r.recDate),recTime(r),footageTxt(r),mediaTxt(r),r.ack?'Yes':'No',r.sigName,r.sigDate,r.recvBy,r.recvDate,r.revBy,r.avail,r.quality,r.apprName,r.apprDate,r.remarks].map(q).join(',')));
   dl('OEF-25_CCTV_Requests_'+today()+'.csv','\ufeff'+L.join('\r\n'),'text/csv');
 }
 

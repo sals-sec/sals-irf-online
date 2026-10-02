@@ -420,6 +420,9 @@
     background: var(--accent-dim);
     color: var(--accent);
   }
+  .section-nav a.active .sec-name span {
+    color: var(--accent);
+  }
   .section-nav a .sec-name {
     display: flex;
     align-items: center;
