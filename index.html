@@ -77,8 +77,8 @@ code, pre, .font-mono, td.m, .hc, .step-num, .section-number, .sec-name span, .p
     transform: rotate(-40deg) !important;
     font-size: 50px !important;
     font-weight: bold !important;
-    color: rgba(115, 115, 115, 0.20) !important;
-    letter-spacing: 8px !important;
+    color: rgba(115, 115, 115, 0.22) !important;
+    letter-spacing: 0 !important;
     white-space: nowrap !important;
     font-family: Helvetica, Arial, sans-serif !important;
     user-select: none !important;
@@ -119,8 +119,8 @@ code, pre, .font-mono, td.m, .hc, .step-num, .section-number, .sec-name span, .p
   transform: rotate(-40deg);
   font-size: 50px;
   font-weight: bold;
-  color: rgba(115, 115, 115, 0.20);
-  letter-spacing: 8px;
+  color: rgba(115, 115, 115, 0.22);
+  letter-spacing: 0;
   white-space: nowrap;
   font-family: Helvetica, Arial, sans-serif !important;
   user-select: none;
@@ -615,6 +615,7 @@ dialog.incident-type-dialog::backdrop {
         <span class="save-hint grow" id="fmeta"></span>
         <button type="button" class="btn btn-secondary" data-a="cancel">Cancel</button>
         <button type="button" class="btn btn-outline" data-a="prev">Preview / Print</button>
+        <button type="button" class="btn btn-outline" data-a="exportPdfCurrent">Export PDF</button>
         <button type="button" class="btn btn-primary" data-a="save">Save Request</button>
       </div>
     </section>
@@ -736,7 +737,8 @@ dialog.incident-type-dialog::backdrop {
     <div id="pv" style="background:#fff;padding:8px;border-radius:2px"></div>
     <div class="actions" style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
       <button type="button" class="btn btn-secondary" data-x="mPrev">Close</button>
-      <button type="button" class="btn btn-primary" data-a="print">Print / Save as PDF</button>
+      <button type="button" class="btn btn-outline" data-a="print">Print</button>
+      <button type="button" class="btn btn-primary" data-a="exportPdf">Export PDF</button>
     </div>
   </div>
 </div>
@@ -751,6 +753,8 @@ dialog.incident-type-dialog::backdrop {
 <div id="printArea"></div>
 <div id="toast" role="status"></div>
 
+<script src="/vendor/pdf-lib.min.js"></script>
+<script src="/cctv-pdf.js"></script>
 <script>
 'use strict';
 const APP_VER='1.0.0',SK={data:'cctv_oef25_data_v1',users:'cctv_oef25_users_v1',set:'cctv_oef25_settings_v1',ses:'cctv_oef25_session'};
@@ -1168,8 +1172,8 @@ function renderReg(){
   const canEdit = user && (isRoleAdmin(user) || isRoleFull(user));
   $('#tb').innerHTML=list.length?list.map(r=>{
     const actionsHtml = canEdit
-      ? `<button type="button" class="btn btn-outline btn-sm" data-row="edit" data-id="${r.id}">Edit</button><button type="button" class="btn btn-secondary btn-sm" data-row="view" data-id="${r.id}">Preview</button><button type="button" class="btn btn-danger btn-sm" data-row="del" data-id="${r.id}">Delete</button>`
-      : `<button type="button" class="btn btn-secondary btn-sm" data-row="view" data-id="${r.id}">View</button>`;
+      ? `<button type="button" class="btn btn-outline btn-sm" data-row="edit" data-id="${r.id}">Edit</button><button type="button" class="btn btn-secondary btn-sm" data-row="view" data-id="${r.id}">Preview</button><button type="button" class="btn btn-secondary btn-sm" data-row="pdf" data-id="${r.id}">PDF</button><button type="button" class="btn btn-danger btn-sm" data-row="del" data-id="${r.id}">Delete</button>`
+      : `<button type="button" class="btn btn-secondary btn-sm" data-row="view" data-id="${r.id}">Preview</button><button type="button" class="btn btn-secondary btn-sm" data-row="pdf" data-id="${r.id}">PDF</button>`;
 
     const reqName = r.name || '—';
     const requestorHtml = r.name
@@ -1241,7 +1245,7 @@ function showApprovalModal(r){
 function printHTML(r){
   const b=(list,sel,oth)=>list.map(o=>{const on=(sel||[]).includes(o);return`${on?'☑':'☐'} ${esc(o.startsWith('Other')&&on&&oth?o+': '+oth:o)}`}).join('&nbsp;&nbsp; ');
   return `<div class="pf-wrap">
-    <div class="pf-watermark"><span>CONFIDENTIAL &nbsp; CONFIDENTIAL &nbsp; CONFIDENTIAL</span></div>
+    <div class="pf-watermark"><span>CONFIDENTIAL</span></div>
     <table class="pf">
       <tr><td class="t" colspan="4">CCTV FOOTAGE REQUEST FORM<br><small>OEF-25 Rev 02 &nbsp;|&nbsp; Request No.: ${esc(r.no)} &nbsp;|&nbsp; Status: ${r.status}</small></td></tr>
       <tr><th colspan="4">SECTION A – INFORMATION</th></tr>
@@ -1272,11 +1276,35 @@ function printHTML(r){
   </div>`;
 }
 
+let previewRecord = null;
 function showPrev(r){
+  previewRecord = r;
   const h=printHTML(r);
   $('#pv').innerHTML=h;
   $('#printArea').innerHTML=h;
   $('#mPrev').classList.add('show');
+}
+
+async function downloadRequestPdf(r){
+  if(!r) return;
+  try {
+    toast('Preparing PDF…');
+    const logoImg = document.querySelector('header .brand img');
+    const logoSrc = logoImg ? logoImg.src : '/logo.png';
+    const bytes = await window.createCctvPdf(r, logoSrc);
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `OEF25_CCTV_Request_${(r.no || 'Statement').replace(/[^0-9A-Za-z_-]/g, '_')}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(link.href), 60000);
+    toast('PDF exported successfully');
+  } catch(err) {
+    console.error('PDF export error:', err);
+    toast('PDF export failed: ' + err.message);
+  }
 }
 
 /* ---- export / import ---- */
@@ -1404,6 +1432,7 @@ document.addEventListener('click',async e=>{
       openForm({...r},false);
     }
     else if(rw.dataset.row==='view')showPrev(r);
+    else if(rw.dataset.row==='pdf')downloadRequestPdf(r);
     else{
       if(user && isRoleLimited(user)) return toast('User (Limited) cannot delete requests.');
       delId=r.id;$('#dtx').textContent='Delete '+r.no+' ('+r.name+')? This cannot be undone. Consider exporting a backup first.';$('#mDel').classList.add('show');
@@ -1416,6 +1445,8 @@ document.addEventListener('click',async e=>{
   else if(a==='save'){if(saveForm()){cur=null;tab('reg')}}
   else if(a==='prev'){const r=collect();showPrev(r)}
   else if(a==='print')window.print();
+  else if(a==='exportPdf'){const r=previewRecord||collect();downloadRequestPdf(r)}
+  else if(a==='exportPdfCurrent'){const r=collect();downloadRequestPdf(r)}
   else if(a==='csv')csv();
   else if(a==='json')dl('OEF-25_Backup_'+today()+'.json',JSON.stringify({app:'OEF-25',ver:APP_VER,exported:new Date().toISOString(),rows:rows()},null,2),'application/json');
   else if(a==='imp'){
