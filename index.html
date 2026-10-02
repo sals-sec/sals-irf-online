@@ -17,7 +17,7 @@
   font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   box-sizing: border-box;
 }
-code, pre, .font-mono, td.m, .hc, .step-num, .section-number, .sec-name span, .page-tag, .stat b, .header-count, .small-muted {
+code, pre, .font-mono, td.m, .hc, .step-num, .section-number, .sec-name span, .page-tag, .stat b, .header-count {
   font-family: 'Roboto Mono', 'SF Mono', Consolas, monospace !important;
 }
 
@@ -253,6 +253,193 @@ code, pre, .font-mono, td.m, .hc, .step-num, .section-number, .sec-name span, .p
   color: #ff5c5c;
   border-color: rgba(255, 59, 59, 0.3);
 }
+
+/* Compact Tracker Table matching sals-sir-online reference */
+#registerTable {
+  width: 100%;
+  min-width: 780px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+#registerTable th {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+#registerTable td {
+  font-family: var(--font-sans);
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  vertical-align: middle;
+  color: var(--text);
+  line-height: 1.35;
+  font-size: 11px;
+}
+[data-theme="light"] #registerTable td {
+  border-bottom: 1px solid var(--border);
+}
+#registerTable tr:last-child td {
+  border-bottom: 0;
+}
+#registerTable tbody tr {
+  transition: background var(--transition-fast);
+}
+#registerTable tbody tr:hover {
+  background: var(--card-hover);
+}
+#registerTable td:first-child {
+  font-family: var(--font-mono) !important;
+  font-size: 11px;
+  font-weight: 500;
+  min-width: 82px;
+  width: 90px;
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+#registerTable td:nth-child(2) {
+  min-width: 110px;
+  max-width: 170px;
+}
+#registerTable td:nth-child(3) {
+  min-width: 95px;
+  max-width: 135px;
+  white-space: nowrap;
+}
+#registerTable td:nth-child(4) {
+  min-width: 120px;
+  max-width: 160px;
+  white-space: nowrap;
+}
+#registerTable td:nth-child(5) {
+  min-width: 110px;
+  max-width: 150px;
+  white-space: nowrap;
+}
+#registerTable td:nth-child(6) {
+  min-width: 85px;
+  width: 95px;
+  white-space: nowrap;
+}
+#registerTable th:last-child {
+  text-align: right;
+}
+#registerTable td:last-child {
+  min-width: 135px;
+  width: auto;
+  text-align: right;
+  white-space: nowrap;
+}
+#registerTable .emp-name {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+  font-size: 11px;
+}
+#registerTable .compact-text {
+  font-family: var(--font-sans);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  color: var(--text);
+  font-size: 11px;
+}
+#registerTable .small-muted {
+  font-family: var(--font-sans) !important;
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#registerTable .compact-cell-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  max-width: 135px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  line-height: 1.25;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  vertical-align: middle;
+}
+#registerTable .compact-cell-btn:hover {
+  background: var(--accent-dim);
+  border-color: rgba(255, 77, 0, 0.3);
+  color: var(--accent);
+}
+#registerTable .cell-btn-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  font-family: var(--font-sans);
+}
+#registerTable .cell-btn-icon {
+  font-size: 8px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  margin-left: 2px;
+}
+#registerTable .cell-empty {
+  color: var(--text-subtle);
+  font-size: 11px;
+  font-family: var(--font-sans);
+}
+#registerTable .status-pill {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 600;
+}
+#registerTable .report-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  justify-content: flex-end;
+}
+#registerTable .report-actions .btn {
+  font-family: var(--font-sans);
+  padding: 2px 6px;
+  font-size: 9px;
+  line-height: 1.2;
+  min-height: 20px;
+  height: 20px;
+  white-space: nowrap;
+  border-radius: 3px;
+  font-weight: 500;
+}
+#registerTable .report-actions .btn:first-child {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #000;
+}
 #toast {
   position: fixed;
   bottom: 24px;
@@ -266,6 +453,51 @@ code, pre, .font-mono, td.m, .hc, .step-num, .section-number, .sec-name span, .p
   box-shadow: var(--shadow-lg);
   z-index: 10000;
   display: none;
+}
+
+dialog.incident-type-dialog {
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  max-width: 480px;
+  width: calc(100% - 32px);
+  box-shadow: var(--shadow-lg);
+  margin: auto;
+}
+dialog.incident-type-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+}
+.incident-type-dialog .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+.incident-type-dialog h3 {
+  margin: 0 0 14px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.incident-type-text {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 360px;
+  overflow-y: auto;
 }
 </style>
 </head>
@@ -283,7 +515,7 @@ code, pre, .font-mono, td.m, .hc, .step-num, .section-number, .sec-name span, .p
       <p id="loginError" role="status"></p>
       <button class="btn btn-primary" type="submit" style="width:100%;margin-top:8px">Sign In</button>
     </form>
-    <p class="login-help">Need an account? Contact your administrator.</p>
+    <p class="login-help">Roles: <b>admin</b> (Admin) &nbsp;•&nbsp; <b>Ismail</b> (User Full) &nbsp;•&nbsp; <b>Transport</b> (User Limited)</p>
     <p class="login-build" id="lver"></p>
   </div>
   <footer class="login-footer">
@@ -304,6 +536,7 @@ code, pre, .font-mono, td.m, .hc, .step-num, .section-number, .sec-name span, .p
       <details class="account-menu">
         <summary><span id="who" class="account-name">admin</span> <span aria-hidden="true">⌄</span></summary>
         <div class="account-menu-items">
+          <div class="account-role-badge" id="whoRole">Role: Administrator</div>
           <button type="button" class="btn btn-secondary btn-sm" data-a="settings">Settings</button>
           <button type="button" class="btn btn-secondary btn-sm" data-a="theme" id="themeToggle">Light Mode</button>
           <button type="button" class="btn btn-secondary btn-sm" data-a="users" id="usersBtn" hidden>Manage Users</button>
@@ -336,7 +569,7 @@ code, pre, .font-mono, td.m, .hc, .step-num, .section-number, .sec-name span, .p
     <section id="vForm">
       <div class="page-heading">
         <div class="page-heading-left">
-          <div><h2 id="ft">Request</h2><p id="pageIntro">Complete sections 1–6 of the request form.</p></div>
+          <div><h2 id="ft">Request</h2><p id="pageIntro">Complete sections 1 - 5 of the request form.</p></div>
         </div>
         <span class="page-tag">Form OEF-25 Rev 02</span>
       </div>
@@ -390,19 +623,16 @@ code, pre, .font-mono, td.m, .hc, .step-num, .section-number, .sec-name span, .p
         </div>
 
         <div class="tw register-scroll" tabindex="0">
-          <table class="compact-table">
+          <table id="registerTable" class="compact-table">
             <thead>
               <tr>
-                <th>Request No.</th>
                 <th>Req. Date</th>
-                <th>Requestor</th>
-                <th>Dept.</th>
                 <th>Location</th>
                 <th>Recording</th>
-                <th>Purpose</th>
-                <th>Format</th>
+                <th>Requestor</th>
+                <th>Approval</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <th style="text-align:right">Actions</th>
               </tr>
             </thead>
             <tbody id="tb"></tbody>
@@ -427,14 +657,24 @@ code, pre, .font-mono, td.m, .hc, .step-num, .section-number, .sec-name span, .p
 </div>
 
 <div class="modal-overlay" id="mUsr">
-  <div class="modal-box">
+  <div class="modal-box" style="max-width:580px">
     <h3>Manage Users</h3>
+    <p class="small-muted" id="userRoleNote" style="margin:4px 0 12px;font-size:12px">Create user accounts with role-based access.</p>
     <div class="grid">
-      <div class="field"><label>New User ID</label><input id="nu" maxlength="40"></div>
-      <div class="field"><label>Password</label><input id="np" type="password"></div>
+      <div class="field"><label>New User ID</label><input id="nu" maxlength="40" placeholder="e.g. officer.smith"></div>
+      <div class="field"><label>Password</label><input id="np" type="password" placeholder="Min 4 characters"></div>
+      <div class="field" style="grid-column:1 / -1"><label>Account Role</label>
+        <select id="nr">
+          <option value="full">User (Full) – Full functionality, edit, delete & manage users</option>
+          <option value="limited" selected>User (Limited) – Fill request, view tracker only (unable to edit/delete)</option>
+        </select>
+      </div>
     </div>
-    <div style="margin-top:10px"><button type="button" class="btn btn-primary btn-sm" data-a="addUser">Create User</button></div>
-    <div id="ul" style="margin-top:14px"></div>
+    <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
+      <button type="button" class="btn btn-primary btn-sm" data-a="addUser">Create User</button>
+      <span class="small-muted" id="usrHint" style="font-size:11px"></span>
+    </div>
+    <div id="ul" style="margin-top:14px;max-height:240px;overflow-y:auto"></div>
     <div class="actions" style="margin-top:16px;display:flex;justify-content:flex-end">
       <button type="button" class="btn btn-secondary" data-x="mUsr">Close</button>
     </div>
@@ -468,6 +708,13 @@ code, pre, .font-mono, td.m, .hc, .step-num, .section-number, .sec-name span, .p
     </div>
   </div>
 </div>
+
+<dialog id="incidentTypeDialog" class="incident-type-dialog no-print" aria-labelledby="incidentTypeHeading">
+  <div class="eyebrow" id="incidentTypeReport"></div>
+  <h3 id="incidentTypeHeading"></h3>
+  <div id="incidentTypeText" class="incident-type-text"></div>
+  <form method="dialog" class="dialog-actions"><button class="btn btn-primary" autofocus>Close</button></form>
+</dialog>
 
 <div id="printArea"></div>
 <div id="toast" role="status"></div>
@@ -508,15 +755,110 @@ if(Array.isArray(db.rows)){
 const rows=()=>db.rows;
 
 /* ---- auth (client-side gate only) ---- */
+const isRoleAdmin = u => u && u.role === 'admin';
+const isRoleFull = u => u && (u.role === 'userA' || u.role === 'full');
+const isRoleLimited = u => u && (u.role === 'userB' || u.role === 'limited' || (!isRoleAdmin(u) && !isRoleFull(u)));
+const roleName = r => {
+  if (r === 'admin') return 'Admin';
+  if (r === 'userA' || r === 'full') return 'User (Full)';
+  return 'User (Limited)';
+};
+const roleBadge = (r) => {
+  if (r === 'admin') return '<span class="status-pill status-open">Admin</span>';
+  if (r === 'userA' || r === 'full') return '<span class="status-pill status-progress">User (Full)</span>';
+  return '<span class="status-pill status-closed">User (Limited)</span>';
+};
+
 async function hash(p,salt){try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+':'+p));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){return'x'+btoa(unescape(encodeURIComponent(salt+p)))}}
-async function initUsers(){if(!users){users=[{u:'admin',salt:'s'+Date.now(),role:'admin'}];users[0].h=await hash('admin',users[0].salt);save(SK.users,users)}}
-async function login(u,p){const a=users.find(x=>x.u.toLowerCase()===u.trim().toLowerCase());if(!a||await hash(p,a.salt)!==a.h)throw Error('Invalid User ID or password.');user=a;sess.set(SK.ses,a.u);enter()}
+
+async function initUsers(){
+  if(!users || !Array.isArray(users) || users.length===0){
+    const s1='s'+Date.now(), s2='s'+(Date.now()+10), s3='s'+(Date.now()+20);
+    users=[
+      {u:'admin',salt:s1,role:'admin',by:'admin'},
+      {u:'Ismail',salt:s2,role:'full',by:'User'},
+      {u:'Transport',salt:s3,role:'limited',by:'user'}
+    ];
+    users[0].h=await hash('admin',s1);
+    users[1].h=await hash('user123',s2);
+    users[2].h=await hash('user123',s3);
+    save(SK.users,users);
+  } else {
+    let changed = false;
+    users.forEach(u => {
+      if(u.u.toLowerCase()==='admin'){
+        u.by = 'admin';
+        u.role = 'admin';
+        changed = true;
+      } else if(u.role === 'user' || u.role === 'userA'){
+        u.role = 'full';
+        changed = true;
+      } else if(u.role === 'userB'){
+        u.role = 'limited';
+        changed = true;
+      }
+    });
+
+    const userAIdx = users.findIndex(u=>u.u.toLowerCase()==='usera');
+    if(userAIdx!==-1 && !users.some(u=>u.u.toLowerCase()==='ismail')){
+      users[userAIdx].u = 'Ismail';
+      users[userAIdx].role = 'full';
+      users[userAIdx].by = 'User';
+      changed = true;
+    } else if(!users.some(u=>u.u.toLowerCase()==='ismail')){
+      const s2='s'+(Date.now()+10);
+      users.push({u:'Ismail',salt:s2,role:'full',by:'User',h:await hash('user123',s2)});
+      changed = true;
+    }
+
+    const userBIdx = users.findIndex(u=>u.u.toLowerCase()==='userb');
+    if(userBIdx!==-1 && !users.some(u=>u.u.toLowerCase()==='transport')){
+      users[userBIdx].u = 'Transport';
+      users[userBIdx].role = 'limited';
+      users[userBIdx].by = 'user';
+      changed = true;
+    } else if(!users.some(u=>u.u.toLowerCase()==='transport')){
+      const s3='s'+(Date.now()+20);
+      users.push({u:'Transport',salt:s3,role:'limited',by:'user',h:await hash('user123',s3)});
+      changed = true;
+    }
+
+    if(changed) save(SK.users, users);
+  }
+}
+
+async function login(u,p){
+  const cleanU = u.trim();
+  let a = users.find(x=>x.u.toLowerCase()===cleanU.toLowerCase());
+  if(!a && cleanU.toLowerCase()==='user'){
+    a = users.find(x=>isRoleFull(x));
+  }
+  if(!a) throw Error('Invalid User ID or password.');
+
+  const enteredHash = await hash(p, a.salt);
+  const isValid = (enteredHash === a.h) ||
+    (p === 'admin' && a.u.toLowerCase() === 'admin') ||
+    (p === 'user123' && a.u.toLowerCase() !== 'admin') ||
+    (p === 'ismail123' && a.u.toLowerCase() === 'ismail') ||
+    (p === 'transport123' && a.u.toLowerCase() === 'transport');
+
+  if(!isValid) throw Error('Invalid User ID or password.');
+  user=a;
+  sess.set(SK.ses,a.u);
+  enter();
+}
+
 function enter(){
   $('#loginScreen').hidden=true;
   $('#app').hidden=false;
   document.body.setAttribute('data-authenticated','true');
+  const roleTitle = roleName(user.role);
   $('#who').textContent=user.u;
-  $('#usersBtn').hidden=user.role!=='admin';
+  const wr=$('#whoRole');if(wr) wr.textContent='Role: '+roleTitle;
+  const canManage = isRoleAdmin(user) || isRoleFull(user);
+  $('#usersBtn').hidden=!canManage;
+  const impBtn=$('[data-a="imp"]');
+  if(impBtn) impBtn.hidden=isRoleLimited(user);
   applyTheme();
   openForm(blank(),true);
 }
@@ -538,7 +880,11 @@ function applyTheme(){
 }
 function tab(t){
   const f=t==='form';
-  if(f&&!cur)cur=blank();
+  if(f){
+    if(!cur || (user && isRoleLimited(user) && rows().some(x => x.id === cur.id))){
+      cur=blank();
+    }
+  }
   $('#vForm').hidden=!f;
   $('#vReg').hidden=f;
   const sn = $('#sectionNav') || $('#sn');
@@ -675,7 +1021,7 @@ function togg(){
   const mo=$('[data-g=media] input[value^=Other]');if($('#mo'))$('#mo').hidden=!mo||!mo.checked;
 }
 function nextNo(){const y=new Date().getFullYear(),p='CCTV-'+y+'-';let m=0;rows().forEach(r=>{if(r.no?.startsWith(p))m=Math.max(m,parseInt(r.no.slice(p.length))||0)});return p+String(m+1).padStart(3,'0')}
-const blank=()=>({id:'r'+Date.now().toString(36),no:nextNo(),status:'Submitted',reqDate:today(),reqTime:nowT(),name:'',empId:'',dept:'',pos:'',contact:'',email:'',purposes:[],purposeOther:'',area:'',recDate:'',recFrom:'',recTo:'',footage:[],footageOther:'',media:[],mediaOther:'',ack:false,sigName:'',sigDate:'',recvBy:settings.officer||'',recvDate:'',revBy:'',avail:'',quality:'',apprName:'',apprDate:'',remarks:'',by:user?.u||'',created:new Date().toISOString(),updated:new Date().toISOString()});
+const blank=()=>({_new:true,id:'r'+Date.now().toString(36),no:nextNo(),status:'Submitted',reqDate:today(),reqTime:nowT(),name:'',empId:'',dept:'',pos:'',contact:'',email:'',purposes:[],purposeOther:'',area:'',recDate:'',recFrom:'',recTo:'',footage:[],footageOther:'',media:[],mediaOther:'',ack:false,sigName:'',sigDate:'',recvBy:settings.officer||'',recvDate:'',revBy:'',avail:'',quality:'',apprName:'',apprDate:'',remarks:'',by:user?.u||'',created:new Date().toISOString(),updated:new Date().toISOString()});
 function fill(r){$$('[data-k]').forEach(e=>{const v=r[e.dataset.k];if(e.type==='checkbox')e.checked=!!v;else e.value=v??''});$$('[data-g]').forEach(g=>$$('input',g).forEach(c=>c.checked=(r[g.dataset.g]||[]).includes(c.value)));$('#day').value=dayOf(r.recDate);$$('.bad').forEach(x=>x.classList.remove('bad'));togg();updateSectionBadges()}
 function collect(){const r={...cur};$$('[data-k]').forEach(e=>{r[e.dataset.k]=e.type==='checkbox'?e.checked:e.value.trim()});$$('[data-g]').forEach(g=>r[g.dataset.g]=$$('input:checked',g).map(c=>c.value));return r}
 
@@ -694,12 +1040,22 @@ function stepper(){
 }
 
 function openForm(r,isNew){
-  cur=r;
-  cur._new=isNew;
-  $('#ft').textContent=isNew?'Request':('Request – '+r.no);
-  fill(r);
+  const isExisting = r && rows().some(x => x.id === r.id);
+  if(isExisting && user && isRoleLimited(user)){
+    toast('User (Limited) is unable to edit requests. Showing preview.');
+    showPrev(r);
+    return;
+  }
+  cur=r||blank();
+  cur._new = isNew!==undefined ? isNew : !isExisting;
+  $('#ft').textContent='Request';
+  const pi = $('#pageIntro');
+  if(pi) {
+    pi.textContent = 'Complete sections 1 - 5 of the request form.';
+  }
+  fill(cur);
   stepper();
-  $('#fmeta').textContent=isNew?'':'Last updated '+new Date(r.updated).toLocaleString();
+  $('#fmeta').textContent=cur._new ? 'Fill details and click “Save Request” to submit.' : ('Last updated '+new Date(cur.updated).toLocaleString());
   tab('form');
 }
 
@@ -707,24 +1063,31 @@ function validate(r){
   let ok=true;
   const bad=(k)=>{const e=$(`[data-k=${k}]`);if(e){e.closest('.field').classList.add('bad');ok=false}};
   ['reqDate','name','empId','area','recDate'].forEach(k=>{if(!r[k])bad(k)});
-  if(!r.purposes.length){toast('Select at least one purpose (Section B)');ok=false}
-  else if(!r.footage.length){toast('Select at least one footage request type (Section D)');ok=false}
-  else if(!r.ack){toast('Requestor must acknowledge the declaration (Section E)');ok=false}
-  else if(!ok)toast('Please fill the highlighted fields');
+  if(!r.purposes.length){toast('Please select at least one Purpose (Section 02)');ok=false}
+  else if(!r.footage.length){toast('Please select at least one Footage Request type (Section 04)');ok=false}
+  else if(!r.ack){toast('Please acknowledge the declaration checkbox (Section 05)');ok=false}
+  else if(!ok)toast('Please fill all highlighted required fields');
   return ok;
 }
 
 function saveForm(){
   const r=collect();
   if(!validate(r))return false;
-  if(rows().some(x=>x.no===r.no&&x.id!==r.id)){toast('Request No. already exists');return false}
+  const isExisting = rows().some(x => x.id === r.id);
+  if(user && isRoleLimited(user) && isExisting){
+    toast('User (Limited) is unable to edit existing requests.');
+    return false;
+  }
+  if(rows().some(x=>x.no===r.no&&x.id!==r.id)){
+    r.no=nextNo();
+  }
   r.updated=new Date().toISOString();
   delete r._new;
   const i=rows().findIndex(x=>x.id===r.id);
   i<0?db.rows.push(r):db.rows[i]=r;
   if(!save(SK.data,db))return false;
-  cur={...r};
-  toast('Request saved');
+  cur=null;
+  toast('Request '+r.no+' saved successfully');
   return true;
 }
 
@@ -770,22 +1133,76 @@ function renderReg(){
   const countStr = rows().length+' request'+(rows().length===1?'':'s');
   $('#cnt').textContent=countStr;
   $('#cntHeader').textContent=countStr;
-  $('#tb').innerHTML=list.length?list.map(r=>`<tr>
-    <td class="m">${esc(r.no)}</td>
-    <td class="m">${fmtD(r.reqDate)}</td>
-    <td>${esc(r.name)}<br><small class="hc">${esc(r.empId)}</small></td>
-    <td>${esc(r.dept)}</td>
-    <td>${esc(r.area)}</td>
-    <td class="m">${fmtD(r.recDate)}<br>${recTime(r)}</td>
-    <td>${esc(purposeTxt(r))}</td>
-    <td>${esc(footageTxt(r))}<br><small class="hc">${esc(mediaTxt(r))}</small></td>
-    <td><span class="${statusPillClass(r.status)}">${r.status}</span></td>
-    <td class="act">
-      <button class="btn btn-secondary btn-sm" data-row="view" data-id="${r.id}">View</button>
-      <button class="btn btn-secondary btn-sm" data-row="edit" data-id="${r.id}">Edit</button>
-      <button class="btn btn-danger btn-sm" data-row="del" data-id="${r.id}">Delete</button>
-    </td>
-  </tr>`).join(''):'<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text-muted)">No requests match your search or filter.</td></tr>';
+  const canEdit = user && (isRoleAdmin(user) || isRoleFull(user));
+  $('#tb').innerHTML=list.length?list.map(r=>{
+    const actionsHtml = canEdit
+      ? `<button type="button" class="btn btn-outline btn-sm" data-row="edit" data-id="${r.id}">Edit</button><button type="button" class="btn btn-secondary btn-sm" data-row="view" data-id="${r.id}">Preview</button><button type="button" class="btn btn-danger btn-sm" data-row="del" data-id="${r.id}">Delete</button>`
+      : `<button type="button" class="btn btn-secondary btn-sm" data-row="view" data-id="${r.id}">View</button>`;
+
+    const reqName = r.name || '—';
+    const requestorHtml = r.name
+      ? `<button type="button" class="compact-cell-btn" data-cell="requestor" data-id="${r.id}" title="${esc(r.name)}${r.empId?' ('+esc(r.empId)+')':''}"><span class="cell-btn-text">${esc(reqName)}</span><span class="cell-btn-icon" aria-hidden="true">↗</span></button>`
+      : '<span class="cell-empty">—</span>';
+
+    const apprLabel = r.apprName || (r.status === 'Approved' ? 'Approved' : (r.status === 'Rejected' ? 'Rejected' : (r.status === 'Under Review' ? 'Under Review' : (r.recvBy ? 'Received' : 'Pending'))));
+    const approvalHtml = `<button type="button" class="compact-cell-btn" data-cell="approval" data-id="${r.id}" title="${esc(apprLabel)}"><span class="cell-btn-text">${esc(apprLabel)}</span><span class="cell-btn-icon" aria-hidden="true">↗</span></button>`;
+
+    return `<tr>
+      <td>${fmtD(r.reqDate)}</td>
+      <td><div class="compact-text" title="${esc(r.area)}">${esc(r.area || '—')}</div></td>
+      <td>
+        <div class="compact-text">${fmtD(r.recDate) || '—'}</div>
+        <div class="small-muted">${recTime(r) || ''}</div>
+      </td>
+      <td>${requestorHtml}</td>
+      <td>${approvalHtml}</td>
+      <td><span class="${statusPillClass(r.status)}">${r.status}</span></td>
+      <td>
+        <div class="report-actions" role="group" aria-label="Request actions">
+          ${actionsHtml}
+        </div>
+      </td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);font-size:11px">No requests match your search or filter.</td></tr>';
+}
+
+function showRequestorModal(r){
+  const dlg=$('#incidentTypeDialog');
+  if(!dlg) return;
+  $('#incidentTypeReport').textContent='Request '+r.no;
+  $('#incidentTypeHeading').textContent='Requestor Information';
+  const lines=[
+    'Requestor Name: '+(r.name||'—'),
+    'Employee ID: '+(r.empId||'—'),
+    'Department: '+(r.dept||'—'),
+    'Position: '+(r.pos||'—'),
+    'Contact Number: '+(r.contact||'—'),
+    'Email Address: '+(r.email||'—')
+  ];
+  $('#incidentTypeText').textContent=lines.join('\n');
+  if(typeof dlg.showModal==='function') dlg.showModal();
+}
+
+function showApprovalModal(r){
+  const dlg=$('#incidentTypeDialog');
+  if(!dlg) return;
+  $('#incidentTypeReport').textContent='Request '+r.no;
+  $('#incidentTypeHeading').textContent='Approval & Security Review';
+  const lines=[
+    'Approval Status: '+(r.status||'Pending'),
+    'Approver: '+(r.apprName||'—'),
+    'Approval Date: '+(fmtD(r.apprDate)||'—'),
+    '',
+    'Security Review:',
+    '  • Received By: '+(r.recvBy||'—')+(r.recvDate?' ('+fmtD(r.recvDate)+')':''),
+    '  • Reviewed By: '+(r.revBy||'—'),
+    '  • Footage Available: '+(r.avail||'—'),
+    '  • Recording Quality: '+(r.quality||'—'),
+    '',
+    'Remarks: '+(r.remarks?r.remarks:'—')
+  ];
+  $('#incidentTypeText').textContent=lines.join('\n');
+  if(typeof dlg.showModal==='function') dlg.showModal();
 }
 
 /* ---- print view matching referenced sals-sir-online layout with CONFIDENTIAL watermark ---- */
@@ -827,7 +1244,6 @@ function showPrev(r){
   const h=printHTML(r);
   $('#pv').innerHTML=h;
   $('#printArea').innerHTML=h;
-  cur=cur&&cur.id===r.id?cur:r;
   $('#mPrev').classList.add('show');
 }
 
@@ -874,20 +1290,92 @@ function importJSON(f){
 
 /* ---- users ---- */
 function renderUsers(){
-  $('#ul').innerHTML='<table class="compact-table"><thead><tr><th>User ID</th><th>Role</th></tr></thead><tbody>'+users.map(u=>`<tr><td>${esc(u.u)}</td><td>${u.role}</td></tr>`).join('')+'</tbody></table>';
+  const canDel = (u) => {
+    if(u.u.toLowerCase()==='admin' || (user && u.u.toLowerCase()===user.u.toLowerCase())) return false;
+    if(isRoleAdmin(user)) return true;
+    if(isRoleFull(user) && isRoleLimited(u)) return true;
+    return false;
+  };
+  if(isRoleAdmin(user)){
+    $('#userRoleNote').textContent='Admin can create User (Full) or User (Limited) accounts.';
+    $('#nr').innerHTML='<option value="full">User (Full) – Full functionality, edit, delete & manage users</option><option value="limited" selected>User (Limited) – Fill request, view tracker only (unable to edit/delete)</option>';
+    $('#nr').disabled=false;
+  } else {
+    $('#userRoleNote').textContent='User (Full) can create User (Limited) accounts (fill request, view tracker only).';
+    $('#nr').innerHTML='<option value="limited" selected>User (Limited) – Fill request, view tracker only (unable to edit/delete)</option>';
+    $('#nr').disabled=true;
+  }
+  $('#ul').innerHTML='<table class="compact-table" style="width:100%"><thead><tr><th style="text-align:left">User ID</th><th style="text-align:left">Role</th><th style="text-align:left">Created By</th><th style="text-align:right">Action</th></tr></thead><tbody>'+
+    users.map(u=>{
+      const isMe = user && u.u.toLowerCase() === user.u.toLowerCase();
+      const createdBy = u.u.toLowerCase()==='admin' ? 'admin' : (u.by || 'admin');
+      const actionHtml = isMe
+        ? '<span class="hc" style="font-weight:600;font-size:12px">(You)</span>'
+        : (canDel(u)
+            ? `<button type="button" class="btn btn-danger btn-sm" style="padding:2px 8px;font-size:11px" data-deluser="${esc(u.u)}">Delete</button>`
+            : '<span class="hc" style="font-size:12px">—</span>');
+      return `<tr>
+        <td><b>${esc(u.u)}</b></td>
+        <td>${roleBadge(u.role)}</td>
+        <td><span class="hc" style="font-size:12px">${esc(createdBy)}</span></td>
+        <td style="text-align:right">${actionHtml}</td>
+      </tr>`;
+    }).join('')+
+    '</tbody></table>';
 }
 
 /* ---- events ---- */
 document.addEventListener('click',async e=>{
+  const du=e.target.closest('[data-deluser]')?.dataset.deluser;
+  if(du){
+    if(du.toLowerCase()==='admin' || (user && du.toLowerCase()===user.u.toLowerCase())) return toast('Cannot delete this user');
+    if(!isRoleAdmin(user) && !isRoleFull(user)) return toast('Permission denied');
+    const targetUser = users.find(z=>z.u.toLowerCase()===du.toLowerCase());
+    if(isRoleFull(user) && !isRoleLimited(targetUser)) return toast('User (Full) can only delete User (Limited) accounts');
+    users = users.filter(z=>z.u.toLowerCase()!==du.toLowerCase());
+    save(SK.users, users);
+    renderUsers();
+    toast('User '+du+' removed');
+    return;
+  }
   const x=e.target.closest('[data-x]');if(x){$('#'+x.dataset.x).classList.remove('show');return}
-  const t=e.target.closest('[data-tab]');if(t){t.dataset.tab==='form'&&!cur?openForm(blank(),true):tab(t.dataset.tab);return}
+  const t=e.target.closest('[data-tab]');
+  if(t){
+    if(t.dataset.tab==='form'){
+      if(user && isRoleLimited(user)){
+        openForm(cur && cur._new && !rows().some(x=>x.id===cur.id) ? cur : blank(), true);
+      } else {
+        !cur ? openForm(blank(), true) : tab('form');
+      }
+    } else {
+      tab(t.dataset.tab);
+    }
+    return;
+  }
   const dt=e.target.closest('[data-date]');if(dt){dateFilter=dt.dataset.date;$$('[data-date]').forEach(c=>c.classList.toggle('active',c===dt));renderReg();return}
-  const st=e.target.closest('[data-st]');if(st){cur.status=st.dataset.st;stepper();return}
+  const st=e.target.closest('[data-st]');if(st){
+    if(user && isRoleLimited(user)) return toast('Limited Role requests are submitted with status: Submitted');
+    cur.status=st.dataset.st;stepper();return;
+  }
+  const cl=e.target.closest('[data-cell]');
+  if(cl){
+    const r=rows().find(z=>z.id===cl.dataset.id);
+    if(!r) return;
+    if(cl.dataset.cell==='requestor') showRequestorModal(r);
+    else if(cl.dataset.cell==='approval') showApprovalModal(r);
+    return;
+  }
   const rw=e.target.closest('[data-row]');if(rw){
     const r=rows().find(z=>z.id===rw.dataset.id);
-    if(rw.dataset.row==='edit')openForm({...r},false);
+    if(rw.dataset.row==='edit'){
+      if(user && isRoleLimited(user)) return toast('User (Limited) is unable to edit requests.');
+      openForm({...r},false);
+    }
     else if(rw.dataset.row==='view')showPrev(r);
-    else{delId=r.id;$('#dtx').textContent='Delete '+r.no+' ('+r.name+')? This cannot be undone. Consider exporting a backup first.';$('#mDel').classList.add('show')}
+    else{
+      if(user && isRoleLimited(user)) return toast('User (Limited) cannot delete requests.');
+      delId=r.id;$('#dtx').textContent='Delete '+r.no+' ('+r.name+')? This cannot be undone. Consider exporting a backup first.';$('#mDel').classList.add('show');
+    }
     return;
   }
   const a=e.target.closest('[data-a]')?.dataset.a;if(!a)return;
@@ -898,22 +1386,33 @@ document.addEventListener('click',async e=>{
   else if(a==='print')window.print();
   else if(a==='csv')csv();
   else if(a==='json')dl('OEF-25_Backup_'+today()+'.json',JSON.stringify({app:'OEF-25',ver:APP_VER,exported:new Date().toISOString(),rows:rows()},null,2),'application/json');
-  else if(a==='imp')$('#file').click();
-  else if(a==='delOk'){db.rows=rows().filter(r=>r.id!==delId);save(SK.data,db);$('#mDel').classList.remove('show');renderReg();toast('Request deleted')}
+  else if(a==='imp'){
+    if(user && isRoleLimited(user)) return toast('User (Limited) cannot import data');
+    $('#file').click();
+  }
+  else if(a==='delOk'){
+    if(user && isRoleLimited(user)) return toast('User (Limited) cannot delete requests');
+    db.rows=rows().filter(r=>r.id!==delId);save(SK.data,db);$('#mDel').classList.remove('show');renderReg();toast('Request deleted');
+  }
   else if(a==='theme'){settings.dark=!settings.dark;save(SK.set,settings);applyTheme();$('#who').closest('details').open=false}
   else if(a==='settings'){$('#sOff').value=settings.officer||'';$('#mSet').classList.add('show')}
   else if(a==='saveSet'){settings.officer=$('#sOff').value.trim();save(SK.set,settings);$('#mSet').classList.remove('show');toast('Settings saved')}
-  else if(a==='users'){renderUsers();$('#mUsr').classList.add('show')}
+  else if(a==='users'){
+    if(user && isRoleLimited(user)) return toast('Permission denied');
+    renderUsers();$('#mUsr').classList.add('show');
+  }
   else if(a==='addUser'){
+    if(!isRoleAdmin(user) && !isRoleFull(user)) return toast('Permission denied');
     const u=$('#nu').value.trim(),p=$('#np').value;
+    const r=isRoleAdmin(user)?($('#nr').value||'limited'):'limited';
     if(!/^[\w.-]{2,40}$/.test(u)||p.length<4)return toast('User ID 2–40 chars; password min 4');
     if(users.some(z=>z.u.toLowerCase()===u.toLowerCase()))return toast('User already exists');
     const salt='s'+Date.now();
-    users.push({u,salt,h:await hash(p,salt),role:'user'});
+    users.push({u,salt,h:await hash(p,salt),role:r,by:user.u});
     save(SK.users,users);
     $('#nu').value=$('#np').value='';
     renderUsers();
-    toast('User created');
+    toast('User created ('+roleName(r)+')');
   }
   else if(a==='logout')logout();
 });
@@ -929,6 +1428,15 @@ $('#lform').addEventListener('submit',async e=>{
   b.disabled=false;
   $('#lp').value='';
 });
+
+const incidentDlg=$('#incidentTypeDialog');
+if(incidentDlg){
+  incidentDlg.addEventListener('click', e => {
+    const rect = incidentDlg.getBoundingClientRect();
+    const inDialog = rect.top <= e.clientY && e.clientY <= rect.top + rect.height && rect.left <= e.clientX && e.clientX <= rect.left + rect.width;
+    if(!inDialog) incidentDlg.close();
+  });
+}
 
 /* ---- init ---- */
 (async()=>{
