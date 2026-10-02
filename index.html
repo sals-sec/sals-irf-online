@@ -1269,9 +1269,10 @@ function printHTML(r){
       <tr><th colspan="4">SECTION G – APPROVAL</th></tr>
       <tr><td class="k" style="height:46px">Approver Signature</td><td>${esc(r.apprName)}</td><td class="k">Date</td><td>${fmtD(r.apprDate)}</td></tr>
     </table>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:9px;color:#616b78;font-family:'Roboto',sans-serif">
-      <span>Prepared by: ${esc(user?.u||'')} · Printed ${new Date().toLocaleString()}</span>
-      <span style="font-weight:700;color:#c00;letter-spacing:1px">CONFIDENTIAL DOCUMENT</span>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:8px;color:#616b78;font-family:Helvetica,Arial,sans-serif;padding:0 2px">
+      <span>Request ${esc(r.no)}</span>
+      <span>Prepared By: ${esc(r.by || user?.u || 'admin')}</span>
+      <span>1 / 1</span>
     </div>
   </div>`;
 }
