@@ -4,8 +4,8 @@ import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import worker from './src/worker.mjs';
 
-const PORT = 3000;
-const HOST = '0.0.0.0';
+const PORT = Number(process.env.PORT) || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
 const PUBLIC_DIR = path.resolve('public');
 
 const MIME_TYPES = {
