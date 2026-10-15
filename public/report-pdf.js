@@ -85,7 +85,7 @@ async function createReportPdf(report, logo){
   if(brand)page.drawImage(brand,{x:M,y:H-49,width:99,height:25});
   else await text('SALS',M,26,18,bold,accent);
   await text('OEF-23',W-M-45,28,10,bold);
-  await text('Incident Statement Form',M,58,13,bold);
+  await text('Incident Report Form',M,58,13,bold);
   const box=(x,top,w,h,fill)=>page.drawRectangle({x,y:H-top-h,width:w,height:h,borderColor:border,borderWidth:.45,...(fill?{color:fill}:{})});
   for(const block of layout){
     if(block.title){box(M,y,CW,block.height,rgb(.94,.95,.96));await text(block.title,M+6,y+4,8,bold);}
@@ -125,7 +125,7 @@ async function createReportPdf(report, logo){
   const footerSize=Math.min(8,8*(CW-135)/Math.max(1,width(footer,8,normal)));
   await text(footer,M+100,H-25,footerSize,normal,muted);
   await text('1 / 1',W-M-23,H-25,8,normal,muted);
-  pdf.setTitle('Incident Statement - '+val(report.reportNo));pdf.setAuthor('SALS');
+  pdf.setTitle('Incident Report Form - '+val(report.reportNo));pdf.setAuthor('SALS');
   return pdf.save();
 }
 root.createReportPdf=createReportPdf;
