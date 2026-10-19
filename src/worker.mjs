@@ -172,6 +172,7 @@ export default {async fetch(request,env){
       return json({reports:result.results.map(unpack)});
     }
     if(request.method==='POST' && url.pathname==='/api/reports' || request.method==='PUT' && item){
+      if(user.role==='viewer')return json({error:'Viewer accounts are limited to preview and print only. Creating or modifying reports is blocked.'},403);
       if(!request.headers.get('Content-Type')?.includes('application/json'))return json({error:'JSON is required.'},415);
       const text=await request.text();
       if(new TextEncoder().encode(text).length>1000000)return json({error:'Report is too large. Limit is 1 MB including signatures.'},413);
@@ -194,6 +195,7 @@ export default {async fetch(request,env){
       return json({report:{...data,id:item[1],_version:body._version+1}});
     }
     if(request.method==='DELETE' && item){
+      if(user.role==='viewer')return json({error:'Viewer accounts are limited to preview and print only. Deleting reports is blocked.'},403);
       const version=Number(request.headers.get('If-Match'));
       if(!Number.isInteger(version)||version<1)return json({error:'Refresh the register before deleting.'},409);
       const result=await env.DB.prepare('DELETE FROM reports WHERE id=? AND version=?').bind(item[1],version).run();

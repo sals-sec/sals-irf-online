@@ -87,6 +87,41 @@ assert(restoreResult.added>=1);
 const restoredLogin=await call('POST','/login',{username:'restored_op',password:'restored-pass-123'});
 assert.equal(restoredLogin.status,200);
 console.log('PASS user backup and restore: admin-only, role enforcement, export credentials, import/restore accounts, login verified.');
+
+// Test viewer role permissions & restrictions
+cookie=adminCookie;
+const viewerUser=await call('POST','/users',{username:'viewer1',password:'viewer-password',role:'viewer'});
+assert.equal(viewerUser.status,201);
+assert.equal(viewerUser.user.role,'viewer');
+
+const viewerLogin=await call('POST','/login',{username:'viewer1',password:'viewer-password'});
+assert.equal(viewerLogin.status,200);
+assert.equal(viewerLogin.user.role,'viewer');
+const viewerCookie=viewerLogin.cookie.split(';')[0];
+
+// Allowed for viewer: GET /reports
+const viewerReports=await call('GET','/reports',null,{Cookie:viewerCookie});
+assert.equal(viewerReports.status,200);
+
+// Blocked for viewer: POST /reports
+assert.equal((await call('POST','/reports',{reportNo:'999',employeeName:'Blocked'},{Cookie:viewerCookie})).status,403);
+
+// Blocked for viewer: PUT /reports/:id
+assert.equal((await call('PUT','/reports/'+kept.report.id,{...kept.report,employeeName:'Blocked edit'},{Cookie:viewerCookie})).status,403);
+
+// Blocked for viewer: DELETE /reports/:id
+assert.equal((await call('DELETE','/reports/'+kept.report.id,null,{Cookie:viewerCookie,'If-Match':'1'})).status,403);
+
+// Blocked for viewer: DELETE /reports
+assert.equal((await call('DELETE','/reports',{confirmation:'DELETE ALL',expectedCount:1},{Cookie:viewerCookie})).status,403);
+
+// Blocked for viewer: user management
+assert.equal((await call('GET','/users',null,{Cookie:viewerCookie})).status,403);
+assert.equal((await call('POST','/users',{username:'subviewer',password:'pwd',role:'viewer'},{Cookie:viewerCookie})).status,403);
+assert.equal((await call('DELETE','/users',{username:'viewer1'},{Cookie:viewerCookie})).status,403);
+
+console.log('PASS viewer ID: print & preview read-only access, write and delete blocked, user management blocked.');
+
 const logout=await call('POST','/logout',{});assert.equal(logout.status,200);assert(logout.cookie.includes('Max-Age=0'));assert.equal((await call('GET','/reports')).status,401);
 cookie=operatorCookie;db.prepare('UPDATE sessions SET expires_at=0').run();assert.equal((await call('GET','/session')).status,401);
 console.log('PASS login, admin account creation, user restrictions, hashed credentials, logout/expiry, trusted preparedBy; shared SQLite API: cross-device read/update, signatures, stale edit/delete protection, number collision, independent records, validation, missing binding.');

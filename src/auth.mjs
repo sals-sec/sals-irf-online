@@ -32,10 +32,19 @@ export async function initAuth(DB){
   if(pending.has(DB))return pending.get(DB);
   const operation=(async()=>{
     for(const sql of [
-      "CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, salt TEXT NOT NULL, password_hash TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('admin','user')), created_at TEXT NOT NULL)",
+      "CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, salt TEXT NOT NULL, password_hash TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('admin','user','viewer')), created_at TEXT NOT NULL)",
       'CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, username TEXT NOT NULL, expires_at INTEGER NOT NULL)',
       'CREATE TABLE IF NOT EXISTS login_limits (key TEXT PRIMARY KEY, attempts INTEGER NOT NULL, expires_at INTEGER NOT NULL)'
     ])await DB.prepare(sql).run();
+    try{
+      const table=await DB.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'").first();
+      if(table && table.sql && !table.sql.includes('viewer')){
+        await DB.prepare("CREATE TABLE users_migrated (username TEXT PRIMARY KEY, salt TEXT NOT NULL, password_hash TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('admin','user','viewer')), created_at TEXT NOT NULL)").run();
+        await DB.prepare("INSERT INTO users_migrated (username,salt,password_hash,role,created_at) SELECT username,salt,password_hash,role,created_at FROM users").run();
+        await DB.prepare("DROP TABLE users").run();
+        await DB.prepare("ALTER TABLE users_migrated RENAME TO users").run();
+      }
+    }catch{}
     const existing=await DB.prepare('SELECT username FROM users LIMIT 1').first();
     if(!existing){
       const salt=random(),hash=await passwordHash('admin',salt);
@@ -98,7 +107,7 @@ export async function authRoute(request,DB,path,user){
         if(!u||typeof u!=='object'){skipped++;continue;}
         const username=String(u.username||'').trim().toLowerCase();
         if(!/^[a-z0-9._-]{1,40}$/.test(username)){skipped++;continue;}
-        const role=(u.role==='admin')?'admin':'user';
+        const role=(u.role==='admin')?'admin':((u.role==='viewer')?'viewer':'user');
         const createdAt=String(u.created_at||new Date().toISOString());
         let salt=u.salt;
         let hash=u.password_hash;
@@ -125,8 +134,12 @@ export async function authRoute(request,DB,path,user){
   }
   if(path==='/api/users'){
     if(!user)return json({error:'Please log in to continue.'},401);
-    if(user.role!=='admin')return json({error:'Only admin can manage users.'},403);
+    if(request.method==='GET'){
+      if(user.role!=='admin')return json({error:'Only admin can manage users.'},403);
+      return json({users:(await DB.prepare('SELECT username,role,created_at FROM users ORDER BY username').all()).results});
+    }
     if(request.method==='DELETE'){
+      if(user.role!=='admin')return json({error:'Only admin can manage users.'},403);
       let input;try{input=await body(request);}catch{return json({error:'Invalid user ID.'},400);}
       const username=String(input.username||'').trim().toLowerCase();
       if(!/^[a-z0-9._-]{1,40}$/.test(username))return json({error:'Invalid user ID.'},400);
@@ -134,22 +147,24 @@ export async function authRoute(request,DB,path,user){
       if(!account)return json({error:'This user no longer exists. Refresh the user list.'},404);
       if(account.role==='admin' || username===user.username)return json({error:'Admin accounts cannot be deleted.'},403);
       const results=await DB.batch([
-        DB.prepare("DELETE FROM sessions WHERE username=? AND EXISTS (SELECT 1 FROM users WHERE username=? AND role='user')").bind(username,username),
-        DB.prepare("DELETE FROM users WHERE username=? AND role='user'").bind(username)
+        DB.prepare("DELETE FROM sessions WHERE username=? AND EXISTS (SELECT 1 FROM users WHERE username=? AND role IN ('user','viewer'))").bind(username,username),
+        DB.prepare("DELETE FROM users WHERE username=? AND role IN ('user','viewer')").bind(username)
       ]);
       if(!results[1].meta.changes)return json({error:'This user no longer exists. Refresh the user list.'},404);
       return json({deleted:true,username});
     }
-    if(request.method==='GET')return json({users:(await DB.prepare('SELECT username,role,created_at FROM users ORDER BY username').all()).results});
     if(request.method==='POST'){
+      if(user.role==='viewer')return json({error:'Viewer accounts cannot manage users.'},403);
       let input;try{input=await body(request);}catch{return json({error:'Invalid account details.'},400);}
       const username=String(input.username||'').trim().toLowerCase(),password=String(input.password||'');
+      const requestedRole=(input.role==='viewer')?'viewer':'user';
+      if(user.role!=='admin' && requestedRole!=='viewer')return json({error:'Only admin can create standard users.'},403);
       if(!/^[a-z0-9._-]{1,40}$/.test(username))return json({error:'Use 1–40 letters, numbers, dots, underscores or hyphens for the user ID.'},400);
       if(!password||password.length>128)return json({error:'Password must contain 1–128 characters.'},400);
       const salt=random(),hash=await passwordHash(password,salt);
-      try{await DB.prepare("INSERT INTO users (username,salt,password_hash,role,created_at) VALUES (?,?,?,'user',?)").bind(username,salt,hash,new Date().toISOString()).run();}
+      try{await DB.prepare("INSERT INTO users (username,salt,password_hash,role,created_at) VALUES (?,?,?,?,?)").bind(username,salt,hash,requestedRole,new Date().toISOString()).run();}
       catch(error){if(String(error.message).includes('UNIQUE'))return json({error:'That user ID already exists.'},409);throw error;}
-      return json({user:{username,role:'user'}},201);
+      return json({user:{username,role:requestedRole}},201);
     }
   }
   return null;

@@ -268,10 +268,11 @@
       <div class="register-tools">
         <span class="small-muted" id="registerResults" role="status"></span>
         <div class="register-tool-buttons">
-          <button class="btn btn-secondary btn-sm" onclick="triggerImport()">Import</button>
+          <button type="button" class="btn btn-primary btn-sm" id="createViewerIdBtn" onclick="openCreateViewerDialog()"><span aria-hidden="true">+</span> Create Print/Preview ID</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="importBtn" onclick="triggerImport()">Import</button>
           <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJson(event)">
-          <button class="btn btn-secondary btn-sm" onclick="exportRegisterCsv()">Export</button>
-          <button class="btn btn-secondary btn-sm" onclick="exportBackupJson()">Backup</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="exportCsvBtn" onclick="exportRegisterCsv()">Export</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="backupJsonBtn" onclick="exportBackupJson()">Backup</button>
           <button id="deleteAllReportsButton" class="btn btn-danger btn-sm" hidden onclick="deleteAllReports()">Delete All Reports</button>
         </div>
       </div>
@@ -357,12 +358,54 @@
   </div>
 </div>
 
+<dialog id="createViewerDialog" class="incident-type-dialog no-print" aria-labelledby="createViewerHeading">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <h3 id="createViewerHeading" style="margin:0;">Create Print &amp; Preview ID</h3>
+    <button type="button" class="preview-close-btn" onclick="closeCreateViewerDialog()" aria-label="Close dialog">✕</button>
+  </div>
+  <p class="small-muted" style="margin-bottom:14px;">Create an account limited strictly to printing and previewing reports. Creating, modifying, and deleting reports or accessing user management is blocked for this ID.</p>
+  <form id="createViewerForm" onsubmit="event.preventDefault();submitViewerId()">
+    <div class="field">
+      <label for="viewerUsername">User ID</label>
+      <input id="viewerUsername" autocomplete="off" autocapitalize="none" required maxlength="40" pattern="[A-Za-z0-9._-]+" placeholder="Enter User ID">
+    </div>
+    <div class="field">
+      <label for="viewerPassword">Password</label>
+      <div class="password-wrapper">
+        <input id="viewerPassword" type="password" autocomplete="new-password" required maxlength="128" placeholder="Enter Password">
+        <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('viewerPassword', this)" aria-label="Show password" tabindex="-1">
+          <svg class="eye-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Permissions</label>
+      <div class="small-muted" style="padding:6px 0;line-height:1.6;">
+        <span style="color:var(--success,#00d26a);font-weight:500;">✓ Allowed:</span> Preview reports &amp; Export / Print PDF<br>
+        <span style="color:var(--danger,#ff4444);font-weight:500;">✗ Blocked:</span> Create, edit, save, or delete reports
+      </div>
+    </div>
+    <p id="viewerMessage" role="status" style="margin:8px 0;font-size:13px;min-height:18px;"></p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+      <button type="button" class="btn btn-secondary" onclick="closeCreateViewerDialog()">Cancel</button>
+      <button id="createViewerSubmitBtn" type="submit" class="btn btn-primary">Create ID</button>
+    </div>
+  </form>
+</dialog>
+
 <dialog id="usersDialog" class="incident-type-dialog no-print" aria-labelledby="usersHeading">
   <h3 id="usersHeading">Manage Users</h3>
   <form id="createUserForm" onsubmit="event.preventDefault();createUser()">
     <div class="field"><label for="newUsername">New User ID</label><input id="newUsername" autocomplete="off" autocapitalize="none" required maxlength="40" pattern="[A-Za-z0-9._-]+"></div>
     <div class="field"><label for="newPassword">Password</label><input id="newPassword" type="password" autocomplete="new-password" required maxlength="128"></div>
-    <p class="small-muted">New accounts are standard users.</p><p id="userMessage" role="status"></p>
+    <div class="field">
+      <label for="newRole">Role</label>
+      <select id="newRole">
+        <option value="user">Standard User (Full access)</option>
+        <option value="viewer">Print &amp; Preview Only (Viewer)</option>
+      </select>
+    </div>
+    <p id="userMessage" role="status"></p>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
       <button id="createUserButton" type="submit" class="btn btn-primary">Create User</button>
       <button type="button" class="btn btn-secondary" onclick="backupUsersJson()">Backup Users</button>
@@ -477,6 +520,8 @@ window.addEventListener('DOMContentLoaded', async ()=>{
       if(settingsModal && settingsModal.classList.contains('show')){ closeSettings(); return; }
       const confirmModal = document.getElementById('confirmModal');
       if(confirmModal && confirmModal.classList.contains('show')){ closeConfirm(); return; }
+      const createViewerDialog = document.getElementById('createViewerDialog');
+      if(createViewerDialog && createViewerDialog.open){ closeCreateViewerDialog(); return; }
       const usersDialog = document.getElementById('usersDialog');
       if(usersDialog && usersDialog.open){ usersDialog.close(); return; }
       const incTypeDialog = document.getElementById('incidentTypeDialog');
@@ -498,13 +543,33 @@ async function acceptUser(user, token){
   const resume=lockedUsername===user.username;
   if(token){authToken=token;storeSet(TOKEN_KEY,token);}
   currentUser=user;document.body.dataset.authenticated='true';
-  document.getElementById('accountName').textContent=user.username;
   const isAdm=user.role==='admin';
+  const isViewer=user.role==='viewer';
   document.getElementById('manageUsersButton').hidden=!isAdm;
   document.getElementById('deleteAllReportsButton').hidden=!isAdm;
+  const createViewerBtn=document.getElementById('createViewerIdBtn');
+  if(createViewerBtn)createViewerBtn.hidden=isViewer;
+  const importBtn=document.getElementById('importBtn');
+  if(importBtn)importBtn.hidden=isViewer;
+  const exportCsvBtn=document.getElementById('exportCsvBtn');
+  if(exportCsvBtn)exportCsvBtn.hidden=isViewer;
+  const backupJsonBtn=document.getElementById('backupJsonBtn');
+  if(backupJsonBtn)backupJsonBtn.hidden=isViewer;
+  const tabBtnForm=document.getElementById('tabBtnForm');
+  if(tabBtnForm)tabBtnForm.hidden=isViewer;
+  const sectionNav=document.getElementById('sectionNav');
+  if(sectionNav)sectionNav.hidden=isViewer;
+  if(isViewer){
+    document.getElementById('accountName').textContent=user.username+' (Print/Preview Only)';
+  }else{
+    document.getElementById('accountName').textContent=user.username;
+  }
   document.getElementById('loginPassword').value='';document.getElementById('loginError').textContent='';
   if(!resume){reports=[];newReport();renderRegister();}
   lockedUsername=null;await refreshReports();
+  if(isViewer){
+    switchTab('register');
+  }
 }
 async function checkSession(){
   try{const result=await api('/session');await acceptUser(result.user, authToken);}
@@ -534,7 +599,8 @@ async function logout(){
 async function refreshUsers(){
   const data=await api('/users'),list=document.getElementById('userList');list.textContent='';
   for(const user of data.users){
-    const item=document.createElement('li');item.textContent=user.username+' · '+(user.role==='admin'?'Admin':'Standard user');
+    const roleLabel=user.role==='admin'?'Admin':(user.role==='viewer'?'Print & Preview Only':'Standard user');
+    const item=document.createElement('li');item.textContent=user.username+' · '+roleLabel;
     if(currentUser?.role==='admin' && user.role!=='admin'){
       const button=document.createElement('button');button.type='button';button.className='btn btn-danger btn-sm';button.textContent='Delete';button.style.marginLeft='12px';button.setAttribute('aria-label','Delete user '+user.username);
       button.onclick=()=>deleteUser(user.username,button);item.appendChild(button);
@@ -561,10 +627,48 @@ async function openUsers(){
 async function createUser(){
   const button=document.getElementById('createUserButton');button.disabled=true;
   try{
-    const result=await api('/users',{method:'POST',body:JSON.stringify({username:document.getElementById('newUsername').value,password:document.getElementById('newPassword').value})});
-    document.getElementById('createUserForm').reset();document.getElementById('userMessage').textContent='User '+result.user.username+' created.';await refreshUsers();
+    const role=document.getElementById('newRole')?.value || 'user';
+    const result=await api('/users',{method:'POST',body:JSON.stringify({username:document.getElementById('newUsername').value,password:document.getElementById('newPassword').value,role})});
+    document.getElementById('createUserForm').reset();document.getElementById('userMessage').textContent='User '+result.user.username+' created ('+(result.user.role==='viewer'?'Print & Preview Only':'Standard user')+').';await refreshUsers();
   }catch(error){document.getElementById('userMessage').textContent=error.message;}
   finally{button.disabled=false;}
+}
+function openCreateViewerDialog(){
+  const d=document.getElementById('createViewerDialog');
+  if(!d)return;
+  document.getElementById('createViewerForm').reset();
+  const msg=document.getElementById('viewerMessage');
+  if(msg)msg.textContent='';
+  d.showModal();
+}
+function closeCreateViewerDialog(){
+  const d=document.getElementById('createViewerDialog');
+  if(d && d.open)d.close();
+}
+async function submitViewerId(){
+  const username=document.getElementById('viewerUsername').value.trim();
+  const password=document.getElementById('viewerPassword').value;
+  const btn=document.getElementById('createViewerSubmitBtn');
+  const msg=document.getElementById('viewerMessage');
+  btn.disabled=true;
+  msg.style.color='var(--text-muted)';
+  msg.textContent='Creating ID…';
+  try{
+    const result=await api('/users',{
+      method:'POST',
+      body:JSON.stringify({username,password,role:'viewer'})
+    });
+    msg.style.color='var(--success,#00d26a)';
+    msg.textContent='Print & Preview ID "'+result.user.username+'" created successfully. Access is limited to previewing and printing reports only.';
+    document.getElementById('createViewerForm').reset();
+    setTimeout(()=>{closeCreateViewerDialog();},1800);
+    if(currentUser?.role==='admin')refreshUsers();
+  }catch(error){
+    msg.style.color='var(--danger,#ff3b3b)';
+    msg.textContent=error.message;
+  }finally{
+    btn.disabled=false;
+  }
 }
 
 function togglePasswordVisibility(id, btn){
@@ -586,6 +690,9 @@ function updateRegistryScrollDock(){
 
 /* ============ TABS ============ */
 function switchTab(tab){
+  if(currentUser?.role === 'viewer'){
+    tab = 'register';
+  }
   document.getElementById('tabForm').style.display = tab==='form' ? 'block':'none';
   document.getElementById('tabRegister').style.display = tab==='register' ? 'block':'none';
   document.getElementById('tabBtnForm').classList.toggle('active', tab==='form');
@@ -599,7 +706,7 @@ function switchTab(tab){
     pageIntro.textContent = '';
     pageIntro.style.display = 'none';
   }
-  document.getElementById('sectionNav').hidden = tab!=='form';
+  document.getElementById('sectionNav').hidden = tab!=='form' || currentUser?.role==='viewer';
   document.getElementById('tabBtnForm').setAttribute('aria-current',tab==='form'?'page':'false');
   document.getElementById('tabBtnRegister').setAttribute('aria-current',tab==='register'?'page':'false');
   if(tab==='register'){renderRegister();refreshReports();}
@@ -632,6 +739,7 @@ function fieldIds(){
 }
 /* ============ UI ENHANCEMENTS: STATUS STEPPER, SCROLLSPY, BADGES & PREVIEW ============ */
 function setReportStatus(status){
+  if(currentUser?.role==='viewer')return;
   const el = document.getElementById('status');
   if(el) el.value = status;
   updateStatusStepper(status);
@@ -800,6 +908,7 @@ function resetRegisterFilters(){
 
 function newReport(){
   if(saving){toast('Please wait for the current save to finish.');return;}
+  if(currentUser?.role==='viewer')return;
   currentEditId = null; currentEditVersion=null;
   document.getElementById('reportCreator').textContent=currentUser?.username || '—';
   fieldIds().forEach(id=>{ const el=document.getElementById(id); if(el) el.value = ''; });
@@ -836,6 +945,10 @@ function collectFormData(){
 }
 async function saveReport(){
   if(saving || !currentUser)return;
+  if(currentUser.role==='viewer'){
+    toast('Viewer accounts cannot create or save reports.');
+    return;
+  }
   if(!validateEmployeeName()){
     toast('Employee Name is required.');
     document.getElementById('employeeName').focus();
@@ -857,6 +970,10 @@ async function saveReport(){
   finally{saving=false;button.disabled=false;button.textContent='Save Report';}
 }
 function loadReportIntoForm(id){
+  if(currentUser?.role==='viewer'){
+    toast('Editing reports is blocked for viewer accounts.');
+    return;
+  }
   if(saving){toast('Please wait for the current save to finish.');return;}
   const r = reports.find(x=>x.id===id);
   if(!r) return;
@@ -873,6 +990,10 @@ function loadReportIntoForm(id){
   updateSectionBadges();
 }
 function deleteReport(id){
+  if(currentUser?.role==='viewer'){
+    toast('Viewer accounts cannot delete reports.');
+    return;
+  }
   const report=reports.find(r=>r.id===id);if(!report)return;
   document.getElementById('confirmDeleteBtn').onclick=async()=>{
     const button=document.getElementById('confirmDeleteBtn');button.disabled=true;
@@ -946,6 +1067,21 @@ function renderRegister(){
       ? `<button type="button" class="compact-cell-btn incident-description-link" title="${escapeHtml(descLabel)}" aria-haspopup="dialog" aria-label="View Incident Description Details"><span class="cell-btn-text">${escapeHtml(descLabel)}</span><span class="cell-btn-icon" aria-hidden="true">↗</span></button>`
       : '<span class="cell-empty">—</span>';
 
+    const isViewer = currentUser?.role === 'viewer';
+    const actionsHtml = isViewer
+      ? `<div class="report-actions" role="group" aria-label="Report actions">
+        <button class="btn btn-secondary btn-sm" onclick="previewSpecificStatement('${r.id}')">Preview</button>
+        <button class="btn btn-outline btn-sm" onclick="exportSpecificPdf('${r.id}')">Print / PDF</button>
+        <button class="btn btn-outline btn-sm" onclick="downloadSpecificPdf('${r.id}')">Export PDF</button>
+      </div>`
+      : `<div class="report-actions" role="group" aria-label="Report actions">
+        <button class="btn btn-outline btn-sm" onclick="loadReportIntoForm('${r.id}')">View/Edit</button>
+        <button class="btn btn-secondary btn-sm" onclick="previewSpecificStatement('${r.id}')">Preview</button>
+        <button class="btn btn-outline btn-sm" onclick="exportSpecificPdf('${r.id}')">Print / PDF</button>
+        <button class="btn btn-outline btn-sm" onclick="downloadSpecificPdf('${r.id}')">Export PDF</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteReport('${r.id}')">Delete</button>
+      </div>`;
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><strong>${escapeHtml(formatReportNo(r.reportNo))}</strong></td>
@@ -955,13 +1091,7 @@ function renderRegister(){
       <td><span class="status-pill ${pillClass}">${escapeHtml(statusVal)}</span></td>
       <td>${typeBtnHtml}</td>
       <td>${descBtnHtml}</td>
-      <td><div class="report-actions" role="group" aria-label="Report actions">
-        <button class="btn btn-outline btn-sm" onclick="loadReportIntoForm('${r.id}')">View/Edit</button>
-        <button class="btn btn-secondary btn-sm" onclick="previewSpecificStatement('${r.id}')">Preview</button>
-        <button class="btn btn-outline btn-sm" onclick="exportSpecificPdf('${r.id}')">Print / PDF</button>
-        <button class="btn btn-outline btn-sm" onclick="downloadSpecificPdf('${r.id}')">Export PDF</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteReport('${r.id}')">Delete</button>
-      </div></td>`;
+      <td>${actionsHtml}</td>`;
     const typeLink=tr.querySelector('.incident-type-link');
     if(typeLink)typeLink.addEventListener('click',()=>showIncidentType(r));
     const descriptionLink=tr.querySelector('.incident-description-link');
