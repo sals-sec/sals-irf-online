@@ -1240,8 +1240,16 @@ function buildPrintHtml(r){
   </div>`;
 }
 async function doPrint(r){
-  const preview=window.open('about:blank','_blank');
-  if(!preview){toast('Allow pop-ups to open the PDF, or use Export PDF.');return;}
+  let preview=null;
+  try{
+    preview=window.open('about:blank','_blank');
+  }catch(err){
+    preview=null;
+  }
+  if(!preview){
+    toast('Popup blocked or disabled in frame — downloading PDF directly…');
+    return downloadReportPdf(r);
+  }
   preview.opener=null;
   preview.document.title='Preparing report PDF';
   preview.document.body.textContent='Preparing your single-page PDF…';
