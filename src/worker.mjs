@@ -222,7 +222,7 @@ export default {async fetch(request,env){
     return json({error:'Not found.'},404);
   }catch(error){
     if(String(error.message).includes('UNIQUE constraint'))return json({error:'This report number already exists. Refresh and choose another number.'},409);
-    console.error('Report database operation failed');
+    console.error('Report database operation failed:', error);
     return json({error:'Shared storage is temporarily unavailable. Your changes have not been saved; please retry.'},503);
   }
 }};
