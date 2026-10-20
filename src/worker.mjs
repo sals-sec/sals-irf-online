@@ -167,6 +167,23 @@ export default {async fetch(request,env){
       if(!result.meta.changes)return json({error:'The report list changed. Refresh and confirm again.'},409);
       return json({deleted:true,count:result.meta.changes});
     }
+    if(request.method==='POST' && url.pathname==='/api/reports/restore-seed'){
+      if(user.role==='viewer')return json({error:'Viewer accounts cannot restore data.'},403);
+      let input;try{input=await request.json();}catch{return json({error:'Invalid JSON.'},400);}
+      const list=Array.isArray(input)?input:(input?.reports);
+      if(!Array.isArray(list))return json({error:'Invalid reports list.'},400);
+      let count=0;
+      for(const r of list){
+        if(!r||!r.reportNo)continue;
+        try{
+          const cleaned=clean(r);
+          const id=r.id||crypto.randomUUID();
+          await env.DB.prepare('INSERT INTO reports (id,report_no,data,version) VALUES (?,?,?,?) ON CONFLICT(report_no) DO UPDATE SET data=excluded.data,version=version+1').bind(id,cleaned.reportNo,JSON.stringify(cleaned),r._version||1).run();
+          count++;
+        }catch{}
+      }
+      return json({restored:true,count});
+    }
     if(request.method==='GET' && url.pathname==='/api/reports'){
       const result=await env.DB.prepare('SELECT id, report_no, data, version FROM reports ORDER BY CAST(report_no AS INTEGER) DESC').all();
       return json({reports:result.results.map(unpack)});

@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "type": "oef23_users_backup",
+  "exportedAt": "2026-10-19T06:53:20.409Z",
+  "users": [
+    {
+      "username": "admin",
+      "salt": "0a316d87262583ba6f497b83e1f5f0f952dc4532bb66c778736ab1cf6fd31a7d",
+      "password_hash": "cbebafd87792f9a28a3b883e508362bc2768b9077390a02f28ce8d5e7dcd8e2c",
+      "role": "admin",
+      "created_at": "2026-10-19T06:29:28.847Z"
+    },
+    {
+      "username": "arwin",
+      "salt": "d498e0e569c980b81d5ab2adb430cdfccd9181e488672fb2ef90e2a202fd5065",
+      "password_hash": "41ad9161540c6067bbc4b1f6739271769b23a84e8730ddef60a46763e5cad4d7",
+      "role": "user",
+      "created_at": "2026-09-22T04:20:23.257Z"
+    },
+    {
+      "username": "ismail",
+      "salt": "574e6cca64809f1415ca363f23ad8b930626944ea04365170d90c39533ed345a",
+      "password_hash": "05474f256b95fa119811bb46fd87799bbb3fbb11f8b2b03a7921d22912014d93",
+      "role": "user",
+      "created_at": "2026-09-22T04:19:54.196Z"
+    },
+    {
+      "username": "ruthra",
+      "salt": "9a1f9b3d1e930eb62723ddcb933cf6132193f07d194d10b6c0f651e8335f76ba",
+      "password_hash": "e83f3c1e98e700a2f7811e564fc7185338430fb8314023ec936814eec556173e",
+      "role": "user",
+      "created_at": "2026-09-22T04:20:16.952Z"
+    },
+    {
+      "username": "user",
+      "salt": "c8f2c0b7072c0ae623acc433a3f983034221b8f1cde896bd2e26b0da23d739c0",
+      "password_hash": "634fe61a7fa9ab9d580136c3ee25c2484947b920c0e2e5ef6679d2eaca7d4b09",
+      "role": "viewer",
+      "created_at": "2026-10-19T06:53:16.683Z"
+    }
+  ]
+}

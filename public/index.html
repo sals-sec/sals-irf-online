@@ -269,6 +269,7 @@
         <span class="small-muted" id="registerResults" role="status"></span>
         <div class="register-tool-buttons">
           <button type="button" class="btn btn-primary btn-sm" id="createViewerIdBtn" onclick="openCreateViewerDialog()"><span aria-hidden="true">+</span> Create Print/Preview ID</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="syncDriveBtn" onclick="syncDriveBackup()" title="Reload or sync the attached Google Drive backup database">Sync Drive Backup</button>
           <button type="button" class="btn btn-secondary btn-sm" id="importBtn" onclick="triggerImport()">Import</button>
           <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJson(event)">
           <button type="button" class="btn btn-secondary btn-sm" id="exportCsvBtn" onclick="exportRegisterCsv()">Export</button>
@@ -471,12 +472,45 @@ async function refreshReports(){
     reports=data.reports;connected=true;
     document.getElementById('syncState').textContent='Shared online';
     document.getElementById('storageBanner').style.display='none';
+    if(reports.length > 0){
+      storeSet('oef_cached_reports', JSON.stringify(reports));
+    } else if(currentUser.role !== 'viewer'){
+      fetch('/assets/aistudio/db_registry_3808e951.json')
+        .then(r=>r.ok ? r.json() : null)
+        .then(async json=>{
+          if(json && json.reports && json.reports.length){
+            await api('/reports/restore-seed', {method:'POST', body:JSON.stringify(json)});
+            const fresh=await api('/reports');
+            reports=fresh.reports;
+            updateRegCount();
+            renderRegister();
+          }
+        }).catch(()=>{});
+    }
     updateRegCount();renderRegister();
     if(!currentEditId && reportNoLocked)document.getElementById('reportNo').value=nextReportNo();
   }catch(error){
     connected=false;document.getElementById('syncState').textContent='Not connected';
     const banner=document.getElementById('storageBanner');banner.textContent=error.message+' Changes are not saved until Save Report succeeds.';banner.style.display='block';
   }finally{refreshing=false;}
+}
+async function syncDriveBackup(){
+  if(currentUser?.role==='viewer'){toast('Viewer accounts cannot restore data.');return;}
+  const btn = document.getElementById('syncDriveBtn');
+  if(btn) btn.disabled = true;
+  toast('Syncing Drive backup database…');
+  try{
+    const res = await fetch('/assets/aistudio/db_registry_3808e951.json');
+    if(!res.ok) throw new Error('Drive registry backup file could not be read.');
+    const json = await res.json();
+    const result = await api('/reports/restore-seed', { method: 'POST', body: JSON.stringify(json) });
+    await refreshReports();
+    toast('Database permanently synced with ' + (result.count || reports.length) + ' reports from Drive.');
+  }catch(err){
+    toast('Sync error: ' + err.message);
+  }finally{
+    if(btn) btn.disabled = false;
+  }
 }
 function loadSettings(){
   const raw = storeGet(SETTINGS_KEY);
@@ -549,6 +583,8 @@ async function acceptUser(user, token){
   document.getElementById('deleteAllReportsButton').hidden=!isAdm;
   const createViewerBtn=document.getElementById('createViewerIdBtn');
   if(createViewerBtn)createViewerBtn.hidden=isViewer;
+  const syncDriveBtn=document.getElementById('syncDriveBtn');
+  if(syncDriveBtn)syncDriveBtn.hidden=isViewer;
   const importBtn=document.getElementById('importBtn');
   if(importBtn)importBtn.hidden=isViewer;
   const exportCsvBtn=document.getElementById('exportCsvBtn');

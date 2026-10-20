@@ -67,6 +67,100 @@ if (!fs.existsSync(DB_DIR)) {
 }
 const db = new DatabaseSync(path.join(DB_DIR, 'oef23.db'));
 
+function seedDatabase(database) {
+  try {
+    database.exec("CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, salt TEXT NOT NULL, password_hash TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('admin','user','viewer')), created_at TEXT NOT NULL)");
+    database.exec("CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, username TEXT NOT NULL, expires_at INTEGER NOT NULL)");
+    database.exec("CREATE TABLE IF NOT EXISTS login_limits (key TEXT PRIMARY KEY, attempts INTEGER NOT NULL, expires_at INTEGER NOT NULL)");
+    database.exec("CREATE TABLE IF NOT EXISTS reports (id TEXT PRIMARY KEY, report_no TEXT NOT NULL UNIQUE, data TEXT NOT NULL, version INTEGER NOT NULL DEFAULT 1)");
+
+    const table = database.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'").get();
+    if (table && table.sql && !table.sql.includes('viewer')) {
+      database.exec("CREATE TABLE users_migrated (username TEXT PRIMARY KEY, salt TEXT NOT NULL, password_hash TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('admin','user','viewer')), created_at TEXT NOT NULL)");
+      database.exec("INSERT INTO users_migrated (username,salt,password_hash,role,created_at) SELECT username,salt,password_hash,role,created_at FROM users");
+      database.exec("DROP TABLE users");
+      database.exec("ALTER TABLE users_migrated RENAME TO users");
+    }
+
+    const usersSeedPaths = [
+      path.resolve('src/data/seed_users.json'),
+      path.resolve('public/assets/aistudio/db_users_97374d65.json')
+    ];
+    for (const p of usersSeedPaths) {
+      if (fs.existsSync(p)) {
+        try {
+          const content = JSON.parse(fs.readFileSync(p, 'utf8'));
+          const usersList = content.users || (Array.isArray(content) ? content : []);
+          const stmtUser = database.prepare("INSERT INTO users (username, salt, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(username) DO UPDATE SET salt=excluded.salt, password_hash=excluded.password_hash, role=excluded.role");
+          for (const u of usersList) {
+            if (u.username && u.password_hash && u.salt) {
+              stmtUser.run(String(u.username).trim().toLowerCase(), u.salt, u.password_hash, u.role || 'user', u.created_at || new Date().toISOString());
+            }
+          }
+          break;
+        } catch (e) {
+          console.error('Failed to seed users from', p, e.message);
+        }
+      }
+    }
+
+    const registrySeedPaths = [
+      path.resolve('src/data/seed_registry.json'),
+      path.resolve('public/assets/aistudio/db_registry_3808e951.json')
+    ];
+    for (const p of registrySeedPaths) {
+      if (fs.existsSync(p)) {
+        try {
+          const content = JSON.parse(fs.readFileSync(p, 'utf8'));
+          const reportsList = content.reports || (Array.isArray(content) ? content : []);
+          const stmtReport = database.prepare("INSERT OR IGNORE INTO reports (id, report_no, data, version) VALUES (?, ?, ?, ?)");
+          for (const r of reportsList) {
+            if (r.reportNo) {
+              const { id, reportNo, _version, ...rest } = r;
+              const repId = id || crypto.randomUUID();
+              const formattedNo = String(reportNo).padStart(3, '0');
+              const version = _version || 1;
+              stmtReport.run(repId, formattedNo, JSON.stringify({ ...rest, reportNo: formattedNo }), version);
+            }
+          }
+          break;
+        } catch (e) {
+          console.error('Failed to seed reports from', p, e.message);
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Database initialization/seeding warning:', err);
+  }
+}
+
+seedDatabase(db);
+
+function persistSeedBackup(database) {
+  try {
+    const reports = database.prepare('SELECT id, report_no, data, version FROM reports ORDER BY CAST(report_no AS INTEGER) DESC').all();
+    if (reports && reports.length) {
+      const unpacked = reports.map(r => ({
+        ...JSON.parse(r.data),
+        id: r.id,
+        reportNo: r.report_no,
+        _version: r.version
+      }));
+      const regDir = path.resolve('src/data');
+      if (!fs.existsSync(regDir)) fs.mkdirSync(regDir, { recursive: true });
+      fs.writeFileSync(path.join(regDir, 'seed_registry.json'), JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), reports: unpacked }, null, 2));
+    }
+    const users = database.prepare('SELECT username, salt, password_hash, role, created_at FROM users ORDER BY username').all();
+    if (users && users.length) {
+      const usersDir = path.resolve('src/data');
+      if (!fs.existsSync(usersDir)) fs.mkdirSync(usersDir, { recursive: true });
+      fs.writeFileSync(path.join(usersDir, 'seed_users.json'), JSON.stringify({ version: 1, type: 'oef23_users_backup', exportedAt: new Date().toISOString(), users }, null, 2));
+    }
+  } catch {
+    // ignore
+  }
+}
+
 const DB = {
   prepare(sql) {
     const stmt = db.prepare(sql);
@@ -156,6 +250,10 @@ const server = http.createServer(async (req, res) => {
     });
 
     const webRes = await worker.fetch(webReq, env);
+
+    if (req.method !== 'GET' && req.method !== 'HEAD' && (req.url.startsWith('/api/reports') || req.url.startsWith('/api/users')) && webRes.status < 400) {
+      persistSeedBackup(db);
+    }
 
     res.statusCode = webRes.status;
 
