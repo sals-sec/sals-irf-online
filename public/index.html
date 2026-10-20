@@ -11,7 +11,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/workspace.css">
-<script type="module" src="/drive-sync.js"></script>
 <style>
 
 /* Print / PDF layout mimicking the xlsx grid */
@@ -395,76 +394,6 @@
   </form>
 </dialog>
 
-<dialog id="driveSyncDialog" class="incident-type-dialog no-print" aria-labelledby="driveSyncHeading" style="max-width:540px;width:100%;">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-    <h3 id="driveSyncHeading" style="margin:0;display:flex;align-items:center;gap:8px;font-size:17px;">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M4.5 18.5L8.5 11.5H19.5L15.5 18.5H4.5Z" fill="#2684FC"/>
-        <path d="M8.5 11.5L12 5.5H19.5L16 11.5H8.5Z" fill="#0066DA"/>
-        <path d="M4.5 18.5L8.5 11.5L12 5.5L8 5.5L1 18.5H4.5Z" fill="#FFC107"/>
-      </svg>
-      Google Drive Cloud Backup Sync
-    </h3>
-    <button type="button" class="preview-close-btn" onclick="closeDriveSyncDialog()" aria-label="Close dialog">✕</button>
-  </div>
-  
-  <p class="small-muted" style="margin-bottom:16px;">Update your latest editable incident statement registry directly to your Google Drive backup file, or restore registry data from Google Drive.</p>
-
-  <!-- Google Account connection status -->
-  <div id="driveAuthSection" style="margin-bottom:16px;padding:12px 14px;background:var(--bg-subtle,#f7f9fa);border-radius:6px;border:1px solid var(--border);">
-    <div id="driveUserConnected" style="display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-      <div>
-        <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Connected Google Account</div>
-        <div id="driveUserEmail" style="font-weight:600;font-size:14px;color:var(--text);margin-top:2px;"></div>
-      </div>
-      <button type="button" class="btn btn-outline btn-sm" onclick="disconnectGoogleAccount()">Disconnect</button>
-    </div>
-    <div id="driveUserDisconnected" style="text-align:center;padding:8px 0;">
-      <p style="margin:0 0 12px;font-size:13px;color:var(--text-muted);">Connect your Google Account to access and update your Google Drive backup.</p>
-      <button type="button" class="gsi-material-button" onclick="connectGoogleAccount()">
-        <div class="gsi-material-button-icon">
-          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="display:block;">
-            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
-            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
-            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
-            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
-            <path fill="none" d="M0 0h48v48H0z"></path>
-          </svg>
-        </div>
-        <span class="gsi-material-button-contents">Sign in with Google</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- Drive Target File & Actions -->
-  <div id="driveActionsSection" style="display:none;">
-    <div style="padding:12px 14px;background:var(--bg-subtle,#f7f9fa);border-radius:6px;border:1px solid var(--border);margin-bottom:16px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-        <span style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Google Drive Backup File</span>
-        <button type="button" class="btn btn-outline btn-sm" style="font-size:11px;padding:2px 8px;" onclick="checkDriveFiles()">Refresh</button>
-      </div>
-      <div id="driveTargetFileInfo" style="font-size:13px;line-height:1.5;">Searching Google Drive for registry file…</div>
-    </div>
-
-    <!-- Required User Confirmation Prompt for Mutating Drive File -->
-    <div id="driveConfirmArea" style="display:none;padding:14px;background:rgba(0,102,218,0.08);border:1px solid rgba(0,102,218,0.25);border-radius:6px;margin-bottom:16px;">
-      <div style="font-weight:600;font-size:13px;margin-bottom:6px;color:var(--text);" id="driveConfirmPrompt"></div>
-      <p class="small-muted" style="margin:0 0 12px;color:var(--text-muted);">This action will update the file content on your Google Drive with the latest reports from this workspace.</p>
-      <div style="display:flex;gap:8px;justify-content:flex-end;">
-        <button type="button" class="btn btn-secondary btn-sm" onclick="cancelDriveUpdate()">Cancel</button>
-        <button type="button" class="btn btn-primary btn-sm" id="confirmDriveUpdateBtn" onclick="executeDriveUpdate()">Confirm &amp; Update Drive</button>
-      </div>
-    </div>
-
-    <div id="driveMainButtons" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-top:16px;">
-      <button type="button" class="btn btn-outline btn-sm" id="loadFromDriveBtn" onclick="loadFromGoogleDrive()" title="Download and load registry from Google Drive file">Load from Drive</button>
-      <button type="button" class="btn btn-primary btn-sm" id="promptDriveUpdateBtn" onclick="promptDriveUpdate()" title="Update the file on Google Drive with current registry reports">Update Drive File</button>
-    </div>
-  </div>
-
-  <p id="driveSyncStatus" role="status" style="margin:14px 0 0;font-size:13px;min-height:20px;"></p>
-</dialog>
-
 <dialog id="usersDialog" class="incident-type-dialog no-print" aria-labelledby="usersHeading">
   <h3 id="usersHeading">Manage Users</h3>
   <form id="createUserForm" onsubmit="event.preventDefault();createUser()">
@@ -565,188 +494,22 @@ async function refreshReports(){
     const banner=document.getElementById('storageBanner');banner.textContent=error.message+' Changes are not saved until Save Report succeeds.';banner.style.display='block';
   }finally{refreshing=false;}
 }
-let selectedDriveFile = null;
-
-function openDriveSyncDialog(){
-  const d = document.getElementById('driveSyncDialog');
-  if(!d) return;
-  document.getElementById('driveSyncStatus').textContent = '';
-  document.getElementById('driveConfirmArea').style.display = 'none';
-  updateDriveSyncUI();
-  d.showModal();
-  if(window.driveSync && window.driveSync.getCachedToken()){
-    checkDriveFiles();
-  }
-}
-
-function closeDriveSyncDialog(){
-  const d = document.getElementById('driveSyncDialog');
-  if(d && d.open) d.close();
-}
-
-function syncDriveBackup(){
-  openDriveSyncDialog();
-}
-
-window.onDriveAuthStateChanged = function(user, token){
-  updateDriveSyncUI();
-  if(user && token){
-    checkDriveFiles();
-  }
-};
-
-function updateDriveSyncUI(){
-  const token = window.driveSync?.getCachedToken();
-  const user = window.driveSync?.getCurrentGoogleUser();
-  const connectedDiv = document.getElementById('driveUserConnected');
-  const disconnectedDiv = document.getElementById('driveUserDisconnected');
-  const actionsSection = document.getElementById('driveActionsSection');
-  const emailEl = document.getElementById('driveUserEmail');
-
-  if(token && user){
-    if(connectedDiv) connectedDiv.style.display = 'flex';
-    if(disconnectedDiv) disconnectedDiv.style.display = 'none';
-    if(actionsSection) actionsSection.style.display = 'block';
-    if(emailEl) emailEl.textContent = user.email || user.displayName || 'Connected';
-  } else {
-    if(connectedDiv) connectedDiv.style.display = 'none';
-    if(disconnectedDiv) disconnectedDiv.style.display = 'block';
-    if(actionsSection) actionsSection.style.display = 'none';
-  }
-}
-
-async function connectGoogleAccount(){
-  const status = document.getElementById('driveSyncStatus');
-  if(status){ status.style.color = 'var(--text-muted)'; status.textContent = 'Connecting to Google…'; }
+async function syncDriveBackup(){
+  if(currentUser?.role==='viewer'){toast('Viewer accounts cannot restore data.');return;}
+  const btn = document.getElementById('syncDriveBtn');
+  if(btn) btn.disabled = true;
+  toast('Syncing Drive backup database…');
   try{
-    await window.driveSync.connectGoogleDrive();
-    if(status){ status.style.color = 'var(--success, #00d26a)'; status.textContent = 'Connected to Google Drive successfully.'; }
-  }catch(e){
-    if(status){ status.style.color = 'var(--danger, #ff3b3b)'; status.textContent = e.message; }
-  }
-}
-
-async function disconnectGoogleAccount(){
-  try{
-    await window.driveSync.disconnectGoogleDrive();
-    selectedDriveFile = null;
-    const status = document.getElementById('driveSyncStatus');
-    if(status) status.textContent = 'Disconnected Google account.';
-  }catch(e){}
-}
-
-async function checkDriveFiles(){
-  const info = document.getElementById('driveTargetFileInfo');
-  const status = document.getElementById('driveSyncStatus');
-  if(info) info.innerHTML = '<span style="color:var(--text-muted);">Searching your Google Drive for registry database files…</span>';
-  try{
-    const files = await window.driveSync.searchDriveRegistryFiles();
-    if(files && files.length > 0){
-      selectedDriveFile = files[0];
-      const mod = selectedDriveFile.modifiedTime ? new Date(selectedDriveFile.modifiedTime).toLocaleString() : 'Unknown';
-      if(info) {
-        info.innerHTML = `
-          <div style="font-weight:600;color:var(--success,#00d26a);display:flex;align-items:center;gap:6px;">
-            <span>✓</span> Target file found: <strong>${escapeHtml(selectedDriveFile.name)}</strong>
-          </div>
-          <div class="small-muted" style="margin-top:4px;">
-            Last modified on Drive: <strong>${escapeHtml(mod)}</strong> · ID: <code>${escapeHtml(selectedDriveFile.id.slice(0,12))}…</code>
-          </div>`;
-      }
-      if(status) status.textContent = '';
-    } else {
-      selectedDriveFile = null;
-      if(info) {
-        info.innerHTML = `
-          <div style="color:var(--text-muted);">
-            No existing <code>db_registry</code> file found on your Google Drive.
-          </div>
-          <div class="small-muted" style="margin-top:4px;">
-            Clicking <strong>Update Drive File</strong> will create a new <code>db_registry.json</code> on your Google Drive.
-          </div>`;
-      }
-      if(status) status.textContent = '';
-    }
-  }catch(err){
-    if(info) info.innerHTML = `<span style="color:var(--danger,#ff3b3b);">${escapeHtml(err.message)}</span>`;
-  }
-}
-
-function promptDriveUpdate(){
-  if(currentUser?.role === 'viewer'){ toast('Viewer accounts cannot sync data.'); return; }
-  const promptEl = document.getElementById('driveConfirmPrompt');
-  const confirmArea = document.getElementById('driveConfirmArea');
-  const count = reports ? reports.length : 0;
-  if(selectedDriveFile){
-    promptEl.textContent = `Update Google Drive file "${selectedDriveFile.name}" with the latest ${count} reports?`;
-  } else {
-    promptEl.textContent = `Create new file "db_registry.json" on your Google Drive with current ${count} reports?`;
-  }
-  confirmArea.style.display = 'block';
-}
-
-function cancelDriveUpdate(){
-  document.getElementById('driveConfirmArea').style.display = 'none';
-}
-
-async function executeDriveUpdate(){
-  const confirmBtn = document.getElementById('confirmDriveUpdateBtn');
-  const status = document.getElementById('driveSyncStatus');
-  confirmBtn.disabled = true;
-  status.style.color = 'var(--text-muted)';
-  status.textContent = 'Updating Google Drive file…';
-  try{
-    const latest = await api('/reports');
-    const reportsToSave = latest.reports || reports || [];
-
-    if(selectedDriveFile && selectedDriveFile.id){
-      await window.driveSync.updateDriveFileContent(selectedDriveFile.id, reportsToSave);
-      status.style.color = 'var(--success, #00d26a)';
-      status.textContent = `✓ Successfully updated "${selectedDriveFile.name}" on Google Drive with ${reportsToSave.length} reports!`;
-      toast(`Google Drive file updated (${reportsToSave.length} reports).`);
-    } else {
-      const result = await window.driveSync.createDriveFile(reportsToSave, 'db_registry.json');
-      selectedDriveFile = result;
-      status.style.color = 'var(--success, #00d26a)';
-      status.textContent = `✓ Successfully created "db_registry.json" on Google Drive with ${reportsToSave.length} reports!`;
-      toast(`Created db_registry.json on Google Drive (${reportsToSave.length} reports).`);
-    }
-    cancelDriveUpdate();
-    await checkDriveFiles();
-  }catch(err){
-    status.style.color = 'var(--danger, #ff3b3b)';
-    status.textContent = 'Drive update failed: ' + err.message;
-  }finally{
-    confirmBtn.disabled = false;
-  }
-}
-
-async function loadFromGoogleDrive(){
-  if(currentUser?.role === 'viewer'){ toast('Viewer accounts cannot restore data.'); return; }
-  if(!selectedDriveFile){
-    toast('No registry file selected on Google Drive.');
-    return;
-  }
-  const confirmed = confirm(`Download and restore registry from Google Drive file "${selectedDriveFile.name}"? This will sync the reports from Drive into your registry database.`);
-  if(!confirmed) return;
-
-  const btn = document.getElementById('loadFromDriveBtn');
-  const status = document.getElementById('driveSyncStatus');
-  btn.disabled = true;
-  status.style.color = 'var(--text-muted)';
-  status.textContent = 'Downloading registry from Google Drive…';
-  try{
-    const json = await window.driveSync.readDriveFileContent(selectedDriveFile.id);
+    const res = await fetch('/assets/aistudio/db_registry_3808e951.json');
+    if(!res.ok) throw new Error('Drive registry backup file could not be read.');
+    const json = await res.json();
     const result = await api('/reports/restore-seed', { method: 'POST', body: JSON.stringify(json) });
     await refreshReports();
-    status.style.color = 'var(--success, #00d26a)';
-    status.textContent = `✓ Successfully loaded ${result.count || reports.length} reports from Google Drive into registry database.`;
-    toast(`Loaded ${result.count || reports.length} reports from Google Drive.`);
+    toast('Database permanently synced with ' + (result.count || reports.length) + ' reports from Drive.');
   }catch(err){
-    status.style.color = 'var(--danger, #ff3b3b)';
-    status.textContent = 'Failed to load from Google Drive: ' + err.message;
+    toast('Sync error: ' + err.message);
   }finally{
-    btn.disabled = false;
+    if(btn) btn.disabled = false;
   }
 }
 function loadSettings(){
@@ -793,8 +556,6 @@ window.addEventListener('DOMContentLoaded', async ()=>{
       if(confirmModal && confirmModal.classList.contains('show')){ closeConfirm(); return; }
       const createViewerDialog = document.getElementById('createViewerDialog');
       if(createViewerDialog && createViewerDialog.open){ closeCreateViewerDialog(); return; }
-      const driveSyncDialog = document.getElementById('driveSyncDialog');
-      if(driveSyncDialog && driveSyncDialog.open){ closeDriveSyncDialog(); return; }
       const usersDialog = document.getElementById('usersDialog');
       if(usersDialog && usersDialog.open){ usersDialog.close(); return; }
       const incTypeDialog = document.getElementById('incidentTypeDialog');
