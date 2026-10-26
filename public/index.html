@@ -475,17 +475,25 @@ async function refreshReports(){
     if(reports.length > 0){
       storeSet('oef_cached_reports', JSON.stringify(reports));
     } else if(currentUser.role !== 'viewer'){
-      fetch('/assets/aistudio/db_registry_3808e951.json')
-        .then(r=>r.ok ? r.json() : null)
-        .then(async json=>{
-          if(json && json.reports && json.reports.length){
-            await api('/reports/restore-seed', {method:'POST', body:JSON.stringify(json)});
-            const fresh=await api('/reports');
-            reports=fresh.reports;
-            updateRegCount();
-            renderRegister();
-          }
-        }).catch(()=>{});
+      const candidates = ['/assets/aistudio/db_registry_53c25b25.json', '/assets/aistudio/db_registry_3808e951.json'];
+      (async ()=>{
+        for(const p of candidates){
+          try{
+            const r = await fetch(p);
+            if(r.ok){
+              const json = await r.json();
+              if(json && (json.reports?.length || Array.isArray(json))){
+                await api('/reports/restore-seed', {method:'POST', body:JSON.stringify(json)});
+                const fresh=await api('/reports');
+                reports=fresh.reports;
+                updateRegCount();
+                renderRegister();
+                break;
+              }
+            }
+          }catch(e){}
+        }
+      })().catch(()=>{});
     }
     updateRegCount();renderRegister();
     if(!currentEditId && reportNoLocked)document.getElementById('reportNo').value=nextReportNo();
@@ -500,9 +508,18 @@ async function syncDriveBackup(){
   if(btn) btn.disabled = true;
   toast('Syncing Drive backup database…');
   try{
-    const res = await fetch('/assets/aistudio/db_registry_3808e951.json');
-    if(!res.ok) throw new Error('Drive registry backup file could not be read.');
-    const json = await res.json();
+    const candidates = ['/assets/aistudio/db_registry_53c25b25.json', '/assets/aistudio/db_registry_3808e951.json'];
+    let json = null;
+    for(const p of candidates){
+      try{
+        const res = await fetch(p);
+        if(res.ok){
+          json = await res.json();
+          if(json && (json.reports || Array.isArray(json))) break;
+        }
+      }catch(e){}
+    }
+    if(!json) throw new Error('Drive registry backup file could not be read.');
     const result = await api('/reports/restore-seed', { method: 'POST', body: JSON.stringify(json) });
     await refreshReports();
     toast('Database permanently synced with ' + (result.count || reports.length) + ' reports from Drive.');
@@ -1370,8 +1387,17 @@ async function uploadReports(incoming){
 }
 async function importJson(evt){
   const file=evt.target.files[0];if(!file)return;
-  try{const parsed=JSON.parse(await file.text());await uploadReports(Array.isArray(parsed)?parsed:parsed.reports);}
-  catch(error){toast(error.message);}finally{evt.target.value='';}
+  try{
+    const parsed=JSON.parse(await file.text());
+    const list = Array.isArray(parsed) ? parsed : parsed.reports;
+    if(list && Array.isArray(list) && list.length){
+      const result = await api('/reports/restore-seed', { method: 'POST', body: JSON.stringify(parsed) });
+      await refreshReports();
+      toast('Database updated: ' + (result.count || list.length) + ' reports synced.');
+    } else {
+      await uploadReports(list || []);
+    }
+  }catch(error){toast(error.message);}finally{evt.target.value='';}
 }
 async function uploadLocalReports(){
   try{await uploadReports(JSON.parse(storeGet(STORAGE_KEY)||'[]'));}

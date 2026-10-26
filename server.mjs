@@ -106,14 +106,26 @@ function seedDatabase(database) {
 
     const registrySeedPaths = [
       path.resolve('src/data/seed_registry.json'),
+      path.resolve('public/assets/aistudio/db_registry_53c25b25.json'),
       path.resolve('public/assets/aistudio/db_registry_3808e951.json')
     ];
+    const aistudioDir = path.resolve('public/assets/aistudio');
+    if (fs.existsSync(aistudioDir)) {
+      try {
+        const extra = fs.readdirSync(aistudioDir)
+          .filter(f => f.startsWith('db_registry_') && f.endsWith('.json'))
+          .map(f => path.join(aistudioDir, f));
+        for (const f of extra) {
+          if (!registrySeedPaths.includes(f)) registrySeedPaths.push(f);
+        }
+      } catch {}
+    }
     for (const p of registrySeedPaths) {
       if (fs.existsSync(p)) {
         try {
           const content = JSON.parse(fs.readFileSync(p, 'utf8'));
           const reportsList = content.reports || (Array.isArray(content) ? content : []);
-          const stmtReport = database.prepare("INSERT OR IGNORE INTO reports (id, report_no, data, version) VALUES (?, ?, ?, ?)");
+          const stmtReport = database.prepare("INSERT INTO reports (id, report_no, data, version) VALUES (?, ?, ?, ?) ON CONFLICT(report_no) DO UPDATE SET data=excluded.data, version=excluded.version");
           for (const r of reportsList) {
             if (r.reportNo) {
               const { id, reportNo, _version, ...rest } = r;
@@ -230,8 +242,18 @@ const server = http.createServer(async (req, res) => {
     }
     const body = Buffer.concat(chunks);
 
-    const proto = req.headers['x-forwarded-proto'] || 'http';
-    const host = req.headers['x-forwarded-host'] || req.headers.host || `localhost:${PORT}`;
+    let proto = req.headers['x-forwarded-proto'] || 'http';
+    let host = req.headers['x-forwarded-host'] || req.headers.host || `localhost:${PORT}`;
+    if (req.headers.origin) {
+      try {
+        const oUrl = new URL(req.headers.origin);
+        if ((host.startsWith('localhost') || host.startsWith('127.0.0.1') || host.startsWith('0.0.0.0')) &&
+            (oUrl.host.endsWith('.run.app') || oUrl.host.endsWith('.aistudio.google.com') || oUrl.hostname === 'localhost' || oUrl.hostname === '127.0.0.1')) {
+          host = oUrl.host;
+          proto = oUrl.protocol.replace(':', '');
+        }
+      } catch {}
+    }
     const fullUrl = `${proto}://${host}${req.url}`;
 
     const headers = new Headers();

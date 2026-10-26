@@ -1,9 +1,43 @@
 {
   "version": 1,
-  "exportedAt": "2026-10-15T07:47:53.401Z",
+  "exportedAt": "2026-10-26T01:10:46.128Z",
   "reports": [
     {
-      "reportNo": "168",
+      "reportNo": "169",
+      "dateOfReport": "2026-10-26",
+      "timeOfReport": "08:58",
+      "supervisor": "Marphan Ma",
+      "employeeName": "Ezanie",
+      "passportNo": "N/A",
+      "department": "Operations",
+      "companyAgency": "SALS",
+      "typeOfIncident": "WT Food Zone PIllar Damage",
+      "locationOfIncident": "WT Food Zone",
+      "incidentDateTime": "2026-10-17T04:34",
+      "asset": "N/A",
+      "estimatedValue": "0",
+      "status": "Open",
+      "incidentDescription": "On 17/10/2026, at approximately 4:34 am, PT driver Md Sohag Hossen from the Replenishment Department hit a pilar on the WT Food Zone side with a pallet while moving goods, causing damage to the pillar.",
+      "refName": "Md Sohag Hossen",
+      "refPassportNo": "A06389029",
+      "refDepartment": "Replenishment",
+      "refCompanyAgency": "Rezeki Sumber Insan",
+      "employeeStatement": "Md Sohag Hossen from the Replenishment Department, Passport No. A06389029, lineally denied responsibility for the pillar damaged. After the Security Officer showed me the CCTV footage and further discussion, I acknowledge my mistake and apologized. I promise to be more careful and ensure the incident does not happen again.",
+      "ioAction": "In relation to this case the matter is handed over to management to make the appropriate decision regarding the employee. The cost of repair will be charged to the agency.",
+      "policeReportNo": "N/A",
+      "policeStationName": "N/A",
+      "ioComments": "N/A",
+      "recordingOfficerName": "Arwin Verakumar",
+      "complainantName": "Md Sohag Hossen",
+      "sigComplainant": "",
+      "sigOfficer": "",
+      "updatedAt": "2026-10-26T01:10:37.287Z",
+      "createdAt": "2026-10-26T01:10:37.287Z",
+      "preparedBy": "ismail",
+      "id": "f8436d39-a0ca-4b27-bc56-59b63a34e989",
+      "_version": 1
+    },
+    {
       "dateOfReport": "2026-10-14",
       "timeOfReport": "19:30",
       "supervisor": "Nirmal Singh",
@@ -35,11 +69,11 @@
       "createdAt": "2026-10-15T07:46:59.868Z",
       "preparedBy": "admin",
       "updatedBy": "admin",
+      "reportNo": "168",
       "id": "da19eba2-d811-4f9c-8bff-3e747f42519e",
       "_version": 3
     },
     {
-      "reportNo": "167",
       "dateOfReport": "2026-10-15",
       "timeOfReport": "18:35",
       "supervisor": "Nirmal Singh",
@@ -70,11 +104,11 @@
       "updatedAt": "2026-10-15T07:46:59.897Z",
       "createdAt": "2026-10-15T07:46:59.897Z",
       "preparedBy": "admin",
+      "reportNo": "167",
       "id": "54d6075c-1b49-4303-8c49-cfd506c606ac",
       "_version": 1
     },
     {
-      "reportNo": "166",
       "dateOfReport": "2026-09-21",
       "timeOfReport": "12:30",
       "supervisor": "Ruthrakumaaran",
@@ -105,11 +139,11 @@
       "updatedAt": "2026-10-15T07:46:59.924Z",
       "createdAt": "2026-10-15T07:46:59.924Z",
       "preparedBy": "admin",
+      "reportNo": "166",
       "id": "69101c2a-81c8-499b-b0f0-04d7c738520c",
       "_version": 1
     },
     {
-      "reportNo": "165",
       "dateOfReport": "2026-09-18",
       "timeOfReport": "10:21",
       "supervisor": "Nirmal Singh",
@@ -140,11 +174,11 @@
       "updatedAt": "2026-10-15T07:46:59.959Z",
       "createdAt": "2026-10-15T07:46:59.959Z",
       "preparedBy": "admin",
+      "reportNo": "165",
       "id": "ec28ef7d-d19a-4f2d-b54a-438b98b20138",
       "_version": 1
     },
     {
-      "reportNo": "164",
       "dateOfReport": "2026-09-17",
       "timeOfReport": "15:26",
       "supervisor": "Nirmal Singh",
@@ -175,11 +209,11 @@
       "updatedAt": "2026-10-15T07:46:59.990Z",
       "createdAt": "2026-10-15T07:46:59.990Z",
       "preparedBy": "admin",
+      "reportNo": "164",
       "id": "74b1b868-ab09-4763-9825-f1e6d2dd8221",
       "_version": 1
     },
     {
-      "reportNo": "163",
       "dateOfReport": "2026-09-17",
       "timeOfReport": "15:02",
       "supervisor": "Nirmal Singh",
@@ -210,11 +244,11 @@
       "updatedAt": "2026-10-15T07:47:00.017Z",
       "createdAt": "2026-10-15T07:47:00.017Z",
       "preparedBy": "admin",
+      "reportNo": "163",
       "id": "618ff029-e082-46fb-8f72-3e042e63fd2d",
       "_version": 1
     },
     {
-      "reportNo": "162",
       "dateOfReport": "2026-09-14",
       "timeOfReport": "11:13",
       "supervisor": "Nirmal Singh",
@@ -245,11 +279,11 @@
       "updatedAt": "2026-10-15T07:47:00.055Z",
       "createdAt": "2026-10-15T07:47:00.055Z",
       "preparedBy": "admin",
+      "reportNo": "162",
       "id": "c5dcf4c6-199d-4e68-a39f-80449a6e765f",
       "_version": 1
     },
     {
-      "reportNo": "161",
       "dateOfReport": "2026-09-14",
       "timeOfReport": "17:25",
       "supervisor": "Marphan Ma",
@@ -280,11 +314,11 @@
       "updatedAt": "2026-10-15T07:47:00.090Z",
       "createdAt": "2026-10-15T07:47:00.090Z",
       "preparedBy": "admin",
+      "reportNo": "161",
       "id": "499f7819-50c1-41c0-8b60-8627437e65c9",
       "_version": 1
     },
     {
-      "reportNo": "160",
       "dateOfReport": "2026-08-04",
       "timeOfReport": "20:00",
       "supervisor": "Marphan Ma",
@@ -315,6 +349,7 @@
       "updatedAt": "2026-10-15T07:47:00.124Z",
       "createdAt": "2026-10-15T07:47:00.124Z",
       "preparedBy": "admin",
+      "reportNo": "160",
       "id": "811e68a6-e6d2-4885-a938-2ad1c3d3394f",
       "_version": 1
     }

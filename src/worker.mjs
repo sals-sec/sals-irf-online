@@ -145,7 +145,10 @@ export default {async fetch(request,env){
   if(origin){
     try{
       const originUrl=new URL(origin);
-      if(originUrl.host!==url.host)return json({error:'Use this website to update reports.'},403);
+      const isLoopback = (h) => h.startsWith('localhost') || h.startsWith('127.0.0.1') || h.startsWith('0.0.0.0');
+      const isAllowed = originUrl.host === url.host ||
+        (isLoopback(url.host) && (isLoopback(originUrl.host) || originUrl.host.endsWith('.run.app') || originUrl.host.endsWith('.aistudio.google.com')));
+      if(!isAllowed)return json({error:'Use this website to update reports.'},403);
     }catch{
       return json({error:'Use this website to update reports.'},403);
     }
@@ -177,6 +180,10 @@ export default {async fetch(request,env){
         if(!r||!r.reportNo)continue;
         try{
           const cleaned=clean(r);
+          if(r.createdAt) cleaned.createdAt = String(r.createdAt);
+          if(r.updatedAt) cleaned.updatedAt = String(r.updatedAt);
+          if(r.preparedBy) cleaned.preparedBy = String(r.preparedBy);
+          if(r.updatedBy) cleaned.updatedBy = String(r.updatedBy);
           const id=r.id||crypto.randomUUID();
           await env.DB.prepare('INSERT INTO reports (id,report_no,data,version) VALUES (?,?,?,?) ON CONFLICT(report_no) DO UPDATE SET data=excluded.data,version=version+1').bind(id,cleaned.reportNo,JSON.stringify(cleaned),r._version||1).run();
           count++;
