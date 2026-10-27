@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportedAt": "2026-10-27T02:10:50.517Z",
+  "exportedAt": "2026-10-27T02:20:51.177Z",
   "reports": [
     {
       "reportNo": "170",
@@ -16,7 +16,7 @@
       "incidentDateTime": "2026-10-26T10:00",
       "asset": "Office space shattered, left wall glass panel",
       "estimatedValue": "0",
-      "status": "Under Investigation",
+      "status": "Closed",
       "incidentDescription": "On 26 October 2026 at 7:43 AM, Executive Safety (Noor Aini) pass the information regarding wall glass panel at office space shattered via WhatsApp (include picture) and forwarded to the Facilities Engineer (Haronizan) for further action.",
       "refName": "Bikesh Lama",
       "refPassportNo": "PA1465663",
@@ -31,12 +31,12 @@
       "complainantName": "Bikesh Lama",
       "sigComplainant": "",
       "sigOfficer": "",
+      "updatedAt": "2026-10-27T02:20:48.303Z",
       "createdAt": "2026-10-26T03:05:04.537Z",
-      "updatedAt": "2026-10-26T03:33:30.529Z",
       "preparedBy": "admin",
-      "updatedBy": "ismail",
+      "updatedBy": "arwin",
       "id": "a3a71d8a-6a5d-4fe6-8085-f8196e16e39a",
-      "_version": 4
+      "_version": 9
     },
     {
       "reportNo": "169",
@@ -72,7 +72,7 @@
       "preparedBy": "ismail",
       "updatedBy": "ismail",
       "id": "f8436d39-a0ca-4b27-bc56-59b63a34e989",
-      "_version": 5
+      "_version": 7
     },
     {
       "reportNo": "168",
@@ -108,7 +108,7 @@
       "preparedBy": "admin",
       "updatedBy": "admin",
       "id": "da19eba2-d811-4f9c-8bff-3e747f42519e",
-      "_version": 6
+      "_version": 8
     },
     {
       "reportNo": "167",
@@ -143,7 +143,7 @@
       "updatedAt": "2026-10-15T07:46:59.897Z",
       "preparedBy": "admin",
       "id": "54d6075c-1b49-4303-8c49-cfd506c606ac",
-      "_version": 4
+      "_version": 6
     },
     {
       "reportNo": "166",
@@ -178,7 +178,7 @@
       "updatedAt": "2026-10-15T07:46:59.924Z",
       "preparedBy": "admin",
       "id": "69101c2a-81c8-499b-b0f0-04d7c738520c",
-      "_version": 4
+      "_version": 6
     },
     {
       "reportNo": "165",
@@ -213,7 +213,7 @@
       "updatedAt": "2026-10-15T07:46:59.959Z",
       "preparedBy": "admin",
       "id": "ec28ef7d-d19a-4f2d-b54a-438b98b20138",
-      "_version": 4
+      "_version": 6
     },
     {
       "reportNo": "164",
@@ -248,7 +248,7 @@
       "updatedAt": "2026-10-15T07:46:59.990Z",
       "preparedBy": "admin",
       "id": "74b1b868-ab09-4763-9825-f1e6d2dd8221",
-      "_version": 4
+      "_version": 6
     },
     {
       "reportNo": "163",
@@ -283,7 +283,7 @@
       "updatedAt": "2026-10-15T07:47:00.017Z",
       "preparedBy": "admin",
       "id": "618ff029-e082-46fb-8f72-3e042e63fd2d",
-      "_version": 4
+      "_version": 6
     },
     {
       "reportNo": "162",
@@ -318,7 +318,7 @@
       "updatedAt": "2026-10-15T07:47:00.055Z",
       "preparedBy": "admin",
       "id": "c5dcf4c6-199d-4e68-a39f-80449a6e765f",
-      "_version": 4
+      "_version": 6
     },
     {
       "reportNo": "161",
@@ -353,7 +353,7 @@
       "updatedAt": "2026-10-15T07:47:00.090Z",
       "preparedBy": "admin",
       "id": "499f7819-50c1-41c0-8b60-8627437e65c9",
-      "_version": 4
+      "_version": 6
     },
     {
       "reportNo": "160",
@@ -388,7 +388,7 @@
       "updatedAt": "2026-10-15T07:47:00.124Z",
       "preparedBy": "admin",
       "id": "811e68a6-e6d2-4885-a938-2ad1c3d3394f",
-      "_version": 4
+      "_version": 6
     }
   ]
 }
