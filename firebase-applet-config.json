@@ -3,6 +3,7 @@
   "appId": "1:188405717437:web:d5d24769a7e63463f55ad4",
   "apiKey": "AIzaSyBROTMqsqxsoDdXc67rPxnhyBqtYKgP1QQ",
   "authDomain": "quantum-interface-dmn89.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-salsirfonline-cab8cd0b-f378-4ea1-8572-9c1170ccb05e",
   "storageBucket": "quantum-interface-dmn89.firebasestorage.app",
   "messagingSenderId": "188405717437",
   "measurementId": "",
