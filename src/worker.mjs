@@ -1,5 +1,5 @@
 import {initAuth,currentUser,authRoute} from './auth.mjs';
-import {fetchFromGitHub,getGitHubConfig} from './github.mjs';
+
 const fields = ['dateOfReport','timeOfReport','supervisor','employeeName','passportNo','department','companyAgency','typeOfIncident','locationOfIncident','incidentDateTime','asset','estimatedValue','status','incidentDescription','refName','refPassportNo','refDepartment','refCompanyAgency','employeeStatement','ioAction','policeReportNo','policeStationName','ioComments','recordingOfficerName','complainantName','sigComplainant','sigOfficer'];
 const schema = 'CREATE TABLE IF NOT EXISTS reports (id TEXT PRIMARY KEY, report_no TEXT NOT NULL UNIQUE, data TEXT NOT NULL, version INTEGER NOT NULL DEFAULT 1)';
 const securityHeaders={
@@ -32,8 +32,6 @@ const independentComplainantFix = `
     let employee=document.getElementById('employeeName');
     let complainant=document.getElementById('signatureEmployeeName');
     if(!employee || !complainant)return;
-    // Remove the original inline two-way bindings completely.
-    // Replacing the elements also removes any already-compiled inline handlers.
     if(!employee.dataset.independentBound){
       const replacement=employee.cloneNode(true);
       replacement.removeAttribute('oninput');
@@ -135,13 +133,17 @@ export default {async fetch(request,env){
   if(url.pathname==='/api/health' && request.method==='GET'){
     if(!env.DB)return json({status:'error',database:'unavailable'},503);
     try{
-      await env.DB.prepare('SELECT 1').first();
+      if(env.DB.repository){
+        await env.DB.repository.getReports();
+      }else if(env.DB.prepare){
+        await env.DB.prepare('SELECT 1').first();
+      }
       return json({status:'ok',database:'connected'});
     }catch{
       return json({status:'error',database:'unavailable'},503);
     }
   }
-  if(!env.DB)return json({error:'Shared database is not connected. Bind a Cloudflare D1 database as DB.'},503);
+  if(!env.DB)return json({error:'Shared database is not connected.'},503);
   const origin=request.headers.get('Origin');
   if(origin){
     try{
@@ -160,16 +162,27 @@ export default {async fetch(request,env){
     const authResponse=await authRoute(request,env.DB,url.pathname,user);
     if(authResponse)return authResponse;
     if(!user)return json({error:'Please log in to continue.'},401);
-    await env.DB.prepare(schema).run();
+
+    if(!env.DB.repository && env.DB.prepare){
+      await env.DB.prepare(schema).run();
+    }
+
     const item=url.pathname.match(/^\/api\/reports\/([a-zA-Z0-9_-]+)$/);
     if(request.method==='DELETE' && url.pathname==='/api/reports'){
       if(user.role!=='admin')return json({error:'Only admin can delete all reports.'},403);
       if(!request.headers.get('Content-Type')?.includes('application/json'))return json({error:'JSON is required.'},415);
       let input;try{input=await request.json();}catch{return json({error:'Invalid confirmation.'},400);}
       if(input?.confirmation!=='DELETE ALL' || !Number.isInteger(input.expectedCount) || input.expectedCount<1)return json({error:'Confirm the number of reports before deleting.'},400);
-      const result=await env.DB.prepare('DELETE FROM reports WHERE (SELECT COUNT(*) FROM reports)=?').bind(input.expectedCount).run();
-      if(!result.meta.changes)return json({error:'The report list changed. Refresh and confirm again.'},409);
-      return json({deleted:true,count:result.meta.changes});
+
+      if(env.DB.repository){
+        const res=await env.DB.repository.deleteAllReportsWithCount(input.expectedCount);
+        if(!res.success)return json({error:'The report list changed. Refresh and confirm again.'},409);
+        return json({deleted:true,count:res.changes});
+      } else {
+        const result=await env.DB.prepare('DELETE FROM reports WHERE (SELECT COUNT(*) FROM reports)=?').bind(input.expectedCount).run();
+        if(!result.meta.changes)return json({error:'The report list changed. Refresh and confirm again.'},409);
+        return json({deleted:true,count:result.meta.changes});
+      }
     }
     if(request.method==='POST' && url.pathname==='/api/reports/restore-seed'){
       if(user.role==='viewer')return json({error:'Viewer accounts cannot restore data.'},403);
@@ -186,65 +199,30 @@ export default {async fetch(request,env){
           if(r.preparedBy) cleaned.preparedBy = String(r.preparedBy);
           if(r.updatedBy) cleaned.updatedBy = String(r.updatedBy);
           const id=r.id||crypto.randomUUID();
-          await env.DB.prepare('INSERT INTO reports (id,report_no,data,version) VALUES (?,?,?,?) ON CONFLICT(report_no) DO UPDATE SET data=excluded.data,version=version+1').bind(id,cleaned.reportNo,JSON.stringify(cleaned),r._version||1).run();
+          if(env.DB.repository){
+            await env.DB.repository.upsertReportRecord({
+              id,
+              report_no: cleaned.reportNo,
+              data: JSON.stringify(cleaned),
+              version: r._version||1
+            });
+          } else {
+            await env.DB.prepare('INSERT INTO reports (id,report_no,data,version) VALUES (?,?,?,?) ON CONFLICT(report_no) DO UPDATE SET data=excluded.data,version=version+1').bind(id,cleaned.reportNo,JSON.stringify(cleaned),r._version||1).run();
+          }
           count++;
         }catch{}
       }
       return json({restored:true,count});
     }
-    if(request.method==='GET' && url.pathname==='/api/github/status'){
-      return json({ status: 'ok', ...getGitHubConfig() });
-    }
-    if(request.method==='POST' && url.pathname==='/api/github/sync'){
-      if(user.role==='viewer')return json({error:'Viewer accounts cannot sync data.'},403);
-      let count = 0;
-      let registryData = await fetchFromGitHub('database/db_registry.json');
-      if(!registryData && env.ASSETS) {
-        try {
-          const res = await env.ASSETS.fetch(new Request('http://localhost/database/db_registry.json'));
-          if(res.ok) registryData = await res.json();
-        } catch {}
-      }
-      if(registryData && (registryData.reports || Array.isArray(registryData))){
-        const list = Array.isArray(registryData) ? registryData : registryData.reports;
-        for(const r of list){
-          if(!r||!r.reportNo)continue;
-          try{
-            const cleaned = clean(r);
-            if(r.createdAt) cleaned.createdAt = String(r.createdAt);
-            if(r.updatedAt) cleaned.updatedAt = String(r.updatedAt);
-            if(r.preparedBy) cleaned.preparedBy = String(r.preparedBy);
-            if(r.updatedBy) cleaned.updatedBy = String(r.updatedBy);
-            const id = r.id || crypto.randomUUID();
-            await env.DB.prepare('INSERT INTO reports (id,report_no,data,version) VALUES (?,?,?,?) ON CONFLICT(report_no) DO UPDATE SET data=excluded.data,version=version+1').bind(id,cleaned.reportNo,JSON.stringify(cleaned),r._version||1).run();
-            count++;
-          }catch{}
-        }
-      }
-      let usersData = await fetchFromGitHub('database/db_users.json');
-      if(!usersData && env.ASSETS) {
-        try {
-          const res = await env.ASSETS.fetch(new Request('http://localhost/database/db_users.json'));
-          if(res.ok) usersData = await res.json();
-        } catch {}
-      }
-      if(usersData && (usersData.users || Array.isArray(usersData))){
-        const uList = Array.isArray(usersData) ? usersData : usersData.users;
-        for(const u of uList){
-          if(u.username && u.password_hash && u.salt){
-            try{
-              await env.DB.prepare("INSERT INTO users (username, salt, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(username) DO UPDATE SET salt=excluded.salt, password_hash=excluded.password_hash, role=excluded.role")
-                .bind(String(u.username).trim().toLowerCase(), u.salt, u.password_hash, u.role || 'user', u.created_at || new Date().toISOString())
-                .run();
-            }catch{}
-          }
-        }
-      }
-      return json({ synced: true, count, ...getGitHubConfig() });
-    }
+
     if(request.method==='GET' && url.pathname==='/api/reports'){
-      const result=await env.DB.prepare('SELECT id, report_no, data, version FROM reports ORDER BY CAST(report_no AS INTEGER) DESC').all();
-      return json({reports:result.results.map(unpack)});
+      if(env.DB.repository){
+        const rows=await env.DB.repository.getReports();
+        return json({reports:rows.map(unpack)});
+      } else {
+        const result=await env.DB.prepare('SELECT id, report_no, data, version FROM reports ORDER BY CAST(report_no AS INTEGER) DESC').all();
+        return json({reports:result.results.map(unpack)});
+      }
     }
     if(request.method==='POST' && url.pathname==='/api/reports' || request.method==='PUT' && item){
       if(user.role==='viewer')return json({error:'Viewer accounts are limited to preview and print only. Creating or modifying reports is blocked.'},403);
@@ -256,30 +234,60 @@ export default {async fetch(request,env){
       data.updatedAt=new Date().toISOString();
       if(request.method==='POST'){
         const id=crypto.randomUUID();data.createdAt=data.updatedAt;data.preparedBy=user.username;
-        await env.DB.prepare('INSERT INTO reports (id,report_no,data,version) VALUES (?,?,?,1)').bind(id,data.reportNo,JSON.stringify(data)).run();
+        if(env.DB.repository){
+          await env.DB.repository.insertReport({
+            id,
+            report_no: data.reportNo,
+            data: JSON.stringify(data),
+            version: 1
+          });
+        } else {
+          await env.DB.prepare('INSERT INTO reports (id,report_no,data,version) VALUES (?,?,?,1)').bind(id,data.reportNo,JSON.stringify(data)).run();
+        }
         return json({report:{...data,id,_version:1}},201);
       }
       if(!Number.isInteger(body._version))return json({error:'Reopen this report before saving.'},409);
-      const old=await env.DB.prepare('SELECT data FROM reports WHERE id=?').bind(item[1]).first();
+
+      const old = env.DB.repository
+        ? await env.DB.repository.getReportById(item[1])
+        : await env.DB.prepare('SELECT data FROM reports WHERE id=?').bind(item[1]).first();
+
       if(!old)return json({error:'This report was deleted on another device.'},409);
       data.createdAt=JSON.parse(old.data).createdAt;
       data.preparedBy=JSON.parse(old.data).preparedBy || '';
       data.updatedBy=user.username;
-      const result=await env.DB.prepare('UPDATE reports SET report_no=?,data=?,version=version+1 WHERE id=? AND version=?').bind(data.reportNo,JSON.stringify(data),item[1],body._version).run();
-      if(!result.meta.changes)return json({error:'Another person updated this report. Export your current form to PDF, then reopen the latest report before editing again.'},409);
-      return json({report:{...data,id:item[1],_version:body._version+1}});
+
+      if(env.DB.repository){
+        const ok = await env.DB.repository.updateReport(item[1], body._version, {
+          report_no: data.reportNo,
+          data: JSON.stringify(data)
+        });
+        if(!ok)return json({error:'Another person updated this report. Export your current form to PDF, then reopen the latest report before editing again.'},409);
+        return json({report:{...data,id:item[1],_version:body._version+1}});
+      } else {
+        const result=await env.DB.prepare('UPDATE reports SET report_no=?,data=?,version=version+1 WHERE id=? AND version=?').bind(data.reportNo,JSON.stringify(data),item[1],body._version).run();
+        if(!result.meta.changes)return json({error:'Another person updated this report. Export your current form to PDF, then reopen the latest report before editing again.'},409);
+        return json({report:{...data,id:item[1],_version:body._version+1}});
+      }
     }
     if(request.method==='DELETE' && item){
       if(user.role==='viewer')return json({error:'Viewer accounts are limited to preview and print only. Deleting reports is blocked.'},403);
       const version=Number(request.headers.get('If-Match'));
       if(!Number.isInteger(version)||version<1)return json({error:'Refresh the register before deleting.'},409);
-      const result=await env.DB.prepare('DELETE FROM reports WHERE id=? AND version=?').bind(item[1],version).run();
-      if(!result.meta.changes)return json({error:'This report changed or was deleted. Refresh and try again.'},409);
-      return json({deleted:true});
+
+      if(env.DB.repository){
+        const ok = await env.DB.repository.deleteReportByIdAndVersion(item[1], version);
+        if(!ok)return json({error:'This report changed or was deleted. Refresh and try again.'},409);
+        return json({deleted:true});
+      } else {
+        const result=await env.DB.prepare('DELETE FROM reports WHERE id=? AND version=?').bind(item[1],version).run();
+        if(!result.meta.changes)return json({error:'This report changed or was deleted. Refresh and try again.'},409);
+        return json({deleted:true});
+      }
     }
     return json({error:'Not found.'},404);
   }catch(error){
-    if(String(error.message).includes('UNIQUE constraint'))return json({error:'This report number already exists. Refresh and choose another number.'},409);
+    if(String(error.message).includes('UNIQUE') || String(error.message).includes('unique'))return json({error:'This report number already exists. Refresh and choose another number.'},409);
     console.error('Report database operation failed:', error);
     return json({error:'Shared storage is temporarily unavailable. Your changes have not been saved; please retry.'},503);
   }
