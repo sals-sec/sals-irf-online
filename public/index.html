@@ -269,7 +269,7 @@
         <span class="small-muted" id="registerResults" role="status"></span>
         <div class="register-tool-buttons">
           <button type="button" class="btn btn-primary btn-sm" id="createViewerIdBtn" onclick="openCreateViewerDialog()"><span aria-hidden="true">+</span> Create Print/Preview ID</button>
-          <button type="button" class="btn btn-secondary btn-sm" id="syncDriveBtn" onclick="syncDriveBackup()" title="Reload or sync the attached Google Drive backup database">Sync Drive Backup</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="syncGithubBtn" onclick="syncGithubBackup()" title="Sync database with GitHub (sals-sec/sals-irf-online/database/db_registry.json)">Sync with GitHub</button>
           <button type="button" class="btn btn-secondary btn-sm" id="importBtn" onclick="triggerImport()">Import</button>
           <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJson(event)">
           <button type="button" class="btn btn-secondary btn-sm" id="exportCsvBtn" onclick="exportRegisterCsv()">Export</button>
@@ -475,24 +475,29 @@ async function refreshReports(){
     if(reports.length > 0){
       storeSet('oef_cached_reports', JSON.stringify(reports));
     } else if(currentUser.role !== 'viewer'){
-      const candidates = ['/assets/aistudio/db_registry_53c25b25.json', '/assets/aistudio/db_registry_3808e951.json'];
       (async ()=>{
-        for(const p of candidates){
-          try{
-            const r = await fetch(p);
-            if(r.ok){
-              const json = await r.json();
-              if(json && (json.reports?.length || Array.isArray(json))){
-                await api('/reports/restore-seed', {method:'POST', body:JSON.stringify(json)});
-                const fresh=await api('/reports');
-                reports=fresh.reports;
-                updateRegCount();
-                renderRegister();
-                break;
-              }
+        try{
+          const r = await fetch('/database/db_registry.json');
+          if(r.ok){
+            const json = await r.json();
+            if(json && (json.reports?.length || Array.isArray(json))){
+              await api('/reports/restore-seed', {method:'POST', body:JSON.stringify(json)});
+              const fresh=await api('/reports');
+              reports=fresh.reports;
+              updateRegCount();
+              renderRegister();
+              return;
             }
-          }catch(e){}
-        }
+          }
+        }catch(e){}
+        // Fallback to github sync
+        try{
+          await api('/github/sync', {method:'POST'});
+          const fresh=await api('/reports');
+          reports=fresh.reports;
+          updateRegCount();
+          renderRegister();
+        }catch(e){}
       })().catch(()=>{});
     }
     updateRegCount();renderRegister();
@@ -502,33 +507,32 @@ async function refreshReports(){
     const banner=document.getElementById('storageBanner');banner.textContent=error.message+' Changes are not saved until Save Report succeeds.';banner.style.display='block';
   }finally{refreshing=false;}
 }
-async function syncDriveBackup(){
-  if(currentUser?.role==='viewer'){toast('Viewer accounts cannot restore data.');return;}
-  const btn = document.getElementById('syncDriveBtn');
+async function syncGithubBackup(){
+  if(currentUser?.role==='viewer'){toast('Viewer accounts cannot sync data.');return;}
+  const btn = document.getElementById('syncGithubBtn') || document.getElementById('syncDriveBtn');
   if(btn) btn.disabled = true;
-  toast('Syncing Drive backup database…');
+  toast('Syncing with GitHub database (sals-sec/sals-irf-online)…');
   try{
-    const candidates = ['/assets/aistudio/db_registry_53c25b25.json', '/assets/aistudio/db_registry_3808e951.json'];
-    let json = null;
-    for(const p of candidates){
-      try{
-        const res = await fetch(p);
-        if(res.ok){
-          json = await res.json();
-          if(json && (json.reports || Array.isArray(json))) break;
-        }
-      }catch(e){}
-    }
-    if(!json) throw new Error('Drive registry backup file could not be read.');
-    const result = await api('/reports/restore-seed', { method: 'POST', body: JSON.stringify(json) });
+    const res = await api('/github/sync', { method: 'POST' });
     await refreshReports();
-    toast('Database permanently synced with ' + (result.count || reports.length) + ' reports from Drive.');
+    toast('Database synced with GitHub! ' + (res.count || reports.length) + ' reports active.');
   }catch(err){
+    try{
+      const localRes = await fetch('/database/db_registry.json');
+      if(localRes.ok){
+        const json = await localRes.json();
+        const result = await api('/reports/restore-seed', { method: 'POST', body: JSON.stringify(json) });
+        await refreshReports();
+        toast('Database synced from /database/db_registry.json (' + (result.count || reports.length) + ' reports).');
+        return;
+      }
+    }catch(e){}
     toast('Sync error: ' + err.message);
   }finally{
     if(btn) btn.disabled = false;
   }
 }
+const syncDriveBackup = syncGithubBackup;
 function loadSettings(){
   const raw = storeGet(SETTINGS_KEY);
   const defaults = {prefix:'OEF23', preparedBy:'', dark:false, seedVersion:1};
@@ -600,8 +604,8 @@ async function acceptUser(user, token){
   document.getElementById('deleteAllReportsButton').hidden=!isAdm;
   const createViewerBtn=document.getElementById('createViewerIdBtn');
   if(createViewerBtn)createViewerBtn.hidden=isViewer;
-  const syncDriveBtn=document.getElementById('syncDriveBtn');
-  if(syncDriveBtn)syncDriveBtn.hidden=isViewer;
+  const syncGithubBtn=document.getElementById('syncGithubBtn') || document.getElementById('syncDriveBtn');
+  if(syncGithubBtn)syncGithubBtn.hidden=isViewer;
   const importBtn=document.getElementById('importBtn');
   if(importBtn)importBtn.hidden=isViewer;
   const exportCsvBtn=document.getElementById('exportCsvBtn');

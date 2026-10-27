@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import worker from './src/worker.mjs';
+import { pushFileToGitHub } from './src/github.mjs';
 
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -32,10 +33,18 @@ const ASSETS = {
       pathname = '/index.html';
     }
     const safePath = path.normalize(pathname).replace(/^(\.\.[/\\])+/, '');
-    const filePath = path.join(PUBLIC_DIR, safePath);
-
-    if (!filePath.startsWith(PUBLIC_DIR)) {
-      return new Response('Forbidden', { status: 403 });
+    let filePath;
+    if (pathname.startsWith('/database/')) {
+      const rel = pathname.replace(/^\/database\/?/, '');
+      filePath = path.join(path.resolve('database'), rel);
+      if (!filePath.startsWith(path.resolve('database'))) {
+        return new Response('Forbidden', { status: 403 });
+      }
+    } else {
+      filePath = path.join(PUBLIC_DIR, safePath);
+      if (!filePath.startsWith(PUBLIC_DIR)) {
+        return new Response('Forbidden', { status: 403 });
+      }
     }
 
     try {
@@ -83,6 +92,7 @@ function seedDatabase(database) {
     }
 
     const usersSeedPaths = [
+      path.resolve('database/db_users.json'),
       path.resolve('src/data/seed_users.json'),
       path.resolve('public/assets/aistudio/db_users_97374d65.json')
     ];
@@ -105,6 +115,7 @@ function seedDatabase(database) {
     }
 
     const registrySeedPaths = [
+      path.resolve('database/db_registry.json'),
       path.resolve('src/data/seed_registry.json'),
       path.resolve('public/assets/aistudio/db_registry_53c25b25.json'),
       path.resolve('public/assets/aistudio/db_registry_3808e951.json')
@@ -151,6 +162,8 @@ seedDatabase(db);
 function persistSeedBackup(database) {
   try {
     const reports = database.prepare('SELECT id, report_no, data, version FROM reports ORDER BY CAST(report_no AS INTEGER) DESC').all();
+    let registryJson = null;
+    let latestReportNo = '';
     if (reports && reports.length) {
       const unpacked = reports.map(r => ({
         ...JSON.parse(r.data),
@@ -158,18 +171,43 @@ function persistSeedBackup(database) {
         reportNo: r.report_no,
         _version: r.version
       }));
+      latestReportNo = unpacked[0]?.reportNo || '';
+      registryJson = JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), reports: unpacked }, null, 2);
+
+      const dbDir = path.resolve('database');
+      if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
+      fs.writeFileSync(path.join(dbDir, 'db_registry.json'), registryJson);
+
       const regDir = path.resolve('src/data');
       if (!fs.existsSync(regDir)) fs.mkdirSync(regDir, { recursive: true });
-      fs.writeFileSync(path.join(regDir, 'seed_registry.json'), JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), reports: unpacked }, null, 2));
+      fs.writeFileSync(path.join(regDir, 'seed_registry.json'), registryJson);
     }
     const users = database.prepare('SELECT username, salt, password_hash, role, created_at FROM users ORDER BY username').all();
+    let usersJson = null;
     if (users && users.length) {
+      usersJson = JSON.stringify({ version: 1, type: 'oef23_users_backup', exportedAt: new Date().toISOString(), users }, null, 2);
+
+      const dbDir = path.resolve('database');
+      if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
+      fs.writeFileSync(path.join(dbDir, 'db_users.json'), usersJson);
+
       const usersDir = path.resolve('src/data');
       if (!fs.existsSync(usersDir)) fs.mkdirSync(usersDir, { recursive: true });
-      fs.writeFileSync(path.join(usersDir, 'seed_users.json'), JSON.stringify({ version: 1, type: 'oef23_users_backup', exportedAt: new Date().toISOString(), users }, null, 2));
+      fs.writeFileSync(path.join(usersDir, 'seed_users.json'), usersJson);
     }
-  } catch {
-    // ignore
+
+    if (registryJson) {
+      pushFileToGitHub('database/db_registry.json', registryJson, `Auto-commit: update database/db_registry.json (latest report #${latestReportNo})`).catch(err => {
+        console.warn('[GitHub Auto-Commit] Error syncing registry:', err.message);
+      });
+    }
+    if (usersJson) {
+      pushFileToGitHub('database/db_users.json', usersJson, 'Auto-commit: update database/db_users.json').catch(err => {
+        console.warn('[GitHub Auto-Commit] Error syncing users:', err.message);
+      });
+    }
+  } catch (err) {
+    console.error('persistSeedBackup error:', err);
   }
 }
 

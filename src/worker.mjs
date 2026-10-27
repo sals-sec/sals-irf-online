@@ -1,4 +1,5 @@
 import {initAuth,currentUser,authRoute} from './auth.mjs';
+import {fetchFromGitHub,getGitHubConfig} from './github.mjs';
 const fields = ['dateOfReport','timeOfReport','supervisor','employeeName','passportNo','department','companyAgency','typeOfIncident','locationOfIncident','incidentDateTime','asset','estimatedValue','status','incidentDescription','refName','refPassportNo','refDepartment','refCompanyAgency','employeeStatement','ioAction','policeReportNo','policeStationName','ioComments','recordingOfficerName','complainantName','sigComplainant','sigOfficer'];
 const schema = 'CREATE TABLE IF NOT EXISTS reports (id TEXT PRIMARY KEY, report_no TEXT NOT NULL UNIQUE, data TEXT NOT NULL, version INTEGER NOT NULL DEFAULT 1)';
 const securityHeaders={
@@ -190,6 +191,56 @@ export default {async fetch(request,env){
         }catch{}
       }
       return json({restored:true,count});
+    }
+    if(request.method==='GET' && url.pathname==='/api/github/status'){
+      return json({ status: 'ok', ...getGitHubConfig() });
+    }
+    if(request.method==='POST' && url.pathname==='/api/github/sync'){
+      if(user.role==='viewer')return json({error:'Viewer accounts cannot sync data.'},403);
+      let count = 0;
+      let registryData = await fetchFromGitHub('database/db_registry.json');
+      if(!registryData && env.ASSETS) {
+        try {
+          const res = await env.ASSETS.fetch(new Request('http://localhost/database/db_registry.json'));
+          if(res.ok) registryData = await res.json();
+        } catch {}
+      }
+      if(registryData && (registryData.reports || Array.isArray(registryData))){
+        const list = Array.isArray(registryData) ? registryData : registryData.reports;
+        for(const r of list){
+          if(!r||!r.reportNo)continue;
+          try{
+            const cleaned = clean(r);
+            if(r.createdAt) cleaned.createdAt = String(r.createdAt);
+            if(r.updatedAt) cleaned.updatedAt = String(r.updatedAt);
+            if(r.preparedBy) cleaned.preparedBy = String(r.preparedBy);
+            if(r.updatedBy) cleaned.updatedBy = String(r.updatedBy);
+            const id = r.id || crypto.randomUUID();
+            await env.DB.prepare('INSERT INTO reports (id,report_no,data,version) VALUES (?,?,?,?) ON CONFLICT(report_no) DO UPDATE SET data=excluded.data,version=version+1').bind(id,cleaned.reportNo,JSON.stringify(cleaned),r._version||1).run();
+            count++;
+          }catch{}
+        }
+      }
+      let usersData = await fetchFromGitHub('database/db_users.json');
+      if(!usersData && env.ASSETS) {
+        try {
+          const res = await env.ASSETS.fetch(new Request('http://localhost/database/db_users.json'));
+          if(res.ok) usersData = await res.json();
+        } catch {}
+      }
+      if(usersData && (usersData.users || Array.isArray(usersData))){
+        const uList = Array.isArray(usersData) ? usersData : usersData.users;
+        for(const u of uList){
+          if(u.username && u.password_hash && u.salt){
+            try{
+              await env.DB.prepare("INSERT INTO users (username, salt, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(username) DO UPDATE SET salt=excluded.salt, password_hash=excluded.password_hash, role=excluded.role")
+                .bind(String(u.username).trim().toLowerCase(), u.salt, u.password_hash, u.role || 'user', u.created_at || new Date().toISOString())
+                .run();
+            }catch{}
+          }
+        }
+      }
+      return json({ synced: true, count, ...getGitHubConfig() });
     }
     if(request.method==='GET' && url.pathname==='/api/reports'){
       const result=await env.DB.prepare('SELECT id, report_no, data, version FROM reports ORDER BY CAST(report_no AS INTEGER) DESC').all();
